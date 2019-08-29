@@ -23,12 +23,18 @@ app.get('/', function(request, response) {
   // response.sendFile(__dirname + '/views/index.html');
   
   const startTime = moment('2019-08-01').startOf('day').format('X.SSSSSS');
-  console.log(startTime);
   const url = `https://slack.com/api/conversations.history?token=${TOKEN}&channel=${CHANNEL_ID}&oldest=${startTime}&inclusive=true`;
   axios.get(url)
     .then(r => {
-      console.log(r.data);
-      response.send(r.data, null, 3);
+      console.log(r.data.messages);
+      let songs = [];
+      r.data.messages.forEach(msg => {
+        if (msg.attachments) {
+          msg.attachments.forEach()
+          songs.push({ service: msg.attachments.service_name, title: msg.attachment.title, link: msg.attachment.title_link });
+        }
+      });
+      response.send(songs);
     })
     .catch(error => {
       response.send(JSON.stringify(error));
