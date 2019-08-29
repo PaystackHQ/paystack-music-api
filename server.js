@@ -16,10 +16,10 @@ const helpers = require('./helpers');
 app.use(express.static('public'));
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get('/', async function(request, response) {
+app.get('/', function(request, response) {
   // response.sendFile(__dirname + '/views/index.html');
   try {
-    const history = await helpers.fetchSlackHistory();
+    const history = helpers.fetchSlackHistory();
     console.log(history);
     
     // const songMessages = helpers.filterSpotifyAndYoutubeMessages(history);
