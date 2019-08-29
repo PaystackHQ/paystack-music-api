@@ -22,16 +22,21 @@ app.use(express.static('public'));
 app.get('/', function(request, response) {
   // response.sendFile(__dirname + '/views/index.html');
   
-  const startTime = moment('2019-08-01').startOf('day').format('X.SSSSSS');
-  const url = `https://slack.com/api/conversations.history?token=${TOKEN}&channel=${CHANNEL_ID}&oldest=${startTime}&inclusive=true`;
+  const startTime = moment('2019-08').startOf('month').format('X.SSSSSS');
+  const endTime = moment('2019-08').endOf('month').format('X.SSSSSS');
+  
+  const url = `https://slack.com/api/conversations.history?token=${TOKEN}&channel=${CHANNEL_ID}&oldest=${startTime}&latest=${endTime}inclusive=true`;
   axios.get(url)
     .then(r => {
       console.log(r.data.messages);
       let songs = [];
       r.data.messages.forEach(msg => {
-        if (msg.attachments) {
-          msg.attachments.forEach()
-          songs.push({ service: msg.attachments.service_name, title: msg.attachment.title, link: msg.attachment.title_link });
+        if (msg.attachments && msg.attachments.length) {
+          msg.attachments.forEach(attachment => {
+            if (attachment.service_name === "Spotify" || attachment.service_name === "YouTube") {
+              songs.push({ service: attachment.service_name, title: attachment.title, link: attachment.title_link });
+            }
+          });
         }
       });
       response.send(songs);
