@@ -16,17 +16,12 @@ const helpers = require('./helpers');
 app.use(express.static('public'));
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get('/', function(request, response) {
+app.get('/', async function(request, response) {
   // response.sendFile(__dirname + '/views/index.html');
   try {
-    const history = helpers.fetchSlackHistory().then(r => {
-      console.log(r);
-      response.send('history' + r);  
-    });
-    console.log(history);
-    
-    // const songMessages = helpers.filterSpotifyAndYoutubeMessages(history);
-    // response.send('history' + history);
+    const history = await helpers.fetchSlackHistory();
+    const songs = helpers.filterSongs(history.messages);
+    response.send(songs);
   } catch (error) {
     response.send("An error occurred\n\n" + error); 
   }
