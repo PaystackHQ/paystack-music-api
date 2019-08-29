@@ -19,11 +19,14 @@ app.use(express.static('public'));
 app.get('/', function(request, response) {
   // response.sendFile(__dirname + '/views/index.html');
   try {
-    const history = helpers.fetchSlackHistory();
+    const history = helpers.fetchSlackHistory().then(r => {
+      console.log(r);
+      response.send('history' + r);  
+    });
     console.log(history);
     
     // const songMessages = helpers.filterSpotifyAndYoutubeMessages(history);
-    response.send('history' + history);
+    // response.send('history' + history);
   } catch (error) {
     response.send("An error occurred\n\n" + error); 
   }
