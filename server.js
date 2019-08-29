@@ -6,6 +6,7 @@ const express = require('express');
 const app = express();
 const axios = require('axios');
 const moment = require('moment');
+const helpers = require('./helpers');
 
 
 // we've started you off with Express, 
@@ -18,23 +19,9 @@ app.use(express.static('public'));
 app.get('/', function(request, response) {
   // response.sendFile(__dirname + '/views/index.html');
   
-  const startTime = moment('2019-08').startOf('month').format('X.SSSSSS');
-  const endTime = moment('2019-08').endOf('month').format('X.SSSSSS');
+  const messages = helpers.fetchMessages();
+  const musicMessages = helpers.filterSpotifyAndYoutubeMessages(messages);
   
-  const url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_CHANNEL}&oldest=${startTime}&latest=${endTime}inclusive=true`;
-  axios.get(url)
-    .then(r => {
-      console.log(r.data.messages);
-      let songs = [];
-      r.data.messages.forEach(msg => {
-        if (msg.attachments && msg.attachments.length) {
-          msg.attachments.forEach(attachment => {
-            if (attachment.service_name === "Spotify" || attachment.service_name === "YouTube") {
-              songs.push({ service: attachment.service_name, title: attachment.title, link: attachment.title_link });
-            }
-          });
-        }
-      });
       response.send(songs);
     })
     .catch(error => {
