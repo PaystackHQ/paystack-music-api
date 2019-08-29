@@ -16,18 +16,17 @@ const helpers = require('./helpers');
 app.use(express.static('public'));
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get('/', function(request, response) {
+app.get('/', async function(request, response) {
   // response.sendFile(__dirname + '/views/index.html');
-  
-  const messages = helpers.fetchMessages();
-  const musicMessages = helpers.filterSpotifyAndYoutubeMessages(messages);
-  
-      response.send(songs);
-    })
-    .catch(error => {
-      response.send(JSON.stringify(error));
-      console.log(error);
-    });
+  try {
+    const history = await helpers.fetchSlackHistory();
+    console.log(history);
+    
+    // const songMessages = helpers.filterSpotifyAndYoutubeMessages(history);
+    response.send('history' + history);
+  } catch (error) {
+    response.send("An error occurred\n\n" + error); 
+  }
 });
 
 // listen for requests :)

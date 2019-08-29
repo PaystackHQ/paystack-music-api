@@ -2,12 +2,12 @@ const axios = require('axios');
 const moment = require('moment');
 
 module.exports = {
-  async fetchMessages() {
+  async fetchSlackHistory() {
     const startTime = moment('2019-08').startOf('month').format('X.SSSSSS');
     const endTime = moment('2019-08').endOf('month').format('X.SSSSSS');
     const url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_CHANNEL}&oldest=${startTime}&latest=${endTime}inclusive=true`;
     const response = await axios.get(url);
-    return response.data.messages;
+    return response;
   },
   
   filterSpotifyAndYoutubeMessages(messages) {
@@ -22,5 +22,5 @@ module.exports = {
       }
     });
     return songs;
-  }
+  },
 };
