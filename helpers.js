@@ -43,7 +43,10 @@ module.exports = {
   },
   
   async createPlaylist(name) {
-    
+    const headers = { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` };
+    return axios.post('https://api.spotify.com/v1/playlists', 'data', {
+      headers: {  }
+    }).then(response => response.data);
   },
   
   async addSongsToPlaylist(playlist, songs) {
