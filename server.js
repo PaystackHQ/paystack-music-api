@@ -20,8 +20,9 @@ app.get('/', async function(request, response) {
   // response.sendFile(__dirname + '/views/index.html');
   try {
     const history = await helpers.fetchSlackHistory();
-    const songs = helpers.filterSongs(history.messages);
-    response.send(songs);
+    const spotifyLinks = helpers.filterSpotifyLinks(history.messages);
+    const songs = 
+    response.send(spotifyLinks);
   } catch (error) {
     response.send("An error occurred\n\n" + error); 
   }

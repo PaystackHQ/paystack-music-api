@@ -9,13 +9,18 @@ module.exports = {
     return axios.get(url).then(response => response.data);
   },
   
-  filterSongs(messages) {
+  filterSpotifyMessages(messages) {
     const songs = []
     messages.forEach(msg => {
       if (msg.attachments && msg.attachments.length) {
         msg.attachments.forEach(attachment => {
-          if (attachment.service_name === "Spotify" || attachment.service_name === "YouTube") {
-            songs.push({ service: attachment.service_name, title: attachment.title, link: attachment.title_link });
+          if (attachment.service_name === "Spotify") {
+            // attachment.service_name === "YouTube") {
+            songs.push({ 
+              service: attachment.service_name, 
+              title: attachment.title, 
+              link: attachment.title_link 
+            });
           }
         });
       }
