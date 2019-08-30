@@ -42,7 +42,7 @@ module.exports = {
     return tracks;
   },
   
-  createPlaylist(name, description) {
+  createPlaylist(token, name, description) {
     const url = 'https://api.spotify.com/v1/playlists';
     const headers = { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` };
     return axios.post(url, {
@@ -57,6 +57,10 @@ module.exports = {
   },
   
   getSpotifyToken() {
-    
+    const encodedToken = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY}`).toString('base64');
+    const headers = { 
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${encodedToken}`
+    };
   }
 };
