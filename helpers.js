@@ -27,4 +27,12 @@ module.exports = {
     });
     return songs;
   },
+  
+  filterSpotifyTracks(spotifyMessages) {
+    
+  },
+  
+  fetchTrackId(track) {
+    
+  }
 };
