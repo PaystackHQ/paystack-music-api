@@ -54,5 +54,9 @@ module.exports = {
   
   addSongsToPlaylist(playlist, songs) {
     
+  },
+  
+  getSpotifyToken() {
+    
   }
 };
