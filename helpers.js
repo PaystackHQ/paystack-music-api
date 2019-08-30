@@ -41,4 +41,12 @@ module.exports = {
     });
     return tracks;
   },
+  
+  async createPlaylist(name) {
+    
+  },
+  
+  async addSongsToPlaylist(playlist, songs) {
+    
+  }
 };
