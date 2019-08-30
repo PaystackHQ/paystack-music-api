@@ -29,7 +29,7 @@ module.exports = {
   },
   
   filterSpotifyTracks(spotifyMessages) {
-    
+    return 
   },
   
   fetchTrackId(track) {
