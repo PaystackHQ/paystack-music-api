@@ -10,13 +10,13 @@ module.exports = {
   },
   
   filterSpotifyMessages(messages) {
-    const songs = []
+    const spotifyMessages = []
     messages.forEach(msg => {
       if (msg.attachments && msg.attachments.length) {
         msg.attachments.forEach(attachment => {
           if (attachment.service_name === "Spotify") {
             // attachment.service_name === "YouTube") {
-            songs.push({ 
+            spotifyMessages.push({ 
               service: attachment.service_name, 
               title: attachment.title, 
               link: attachment.title_link 
@@ -25,14 +25,20 @@ module.exports = {
         });
       }
     });
-    return songs;
+    return spotifyMessages;
   },
   
   filterSpotifyTracks(spotifyMessages) {
-    return 
+    const tracks = [];
+    spotifyMessages.forEach(msg => {
+      const urlSplit = msg.link.split('/');
+      if (urlSplit[3] === 'track') {
+        tracks.push({
+          ...msg,
+          id: urlSplit[4],
+        });
+      }
+    });
+    return tracks;
   },
-  
-  fetchTrackId(track) {
-    
-  }
 };
