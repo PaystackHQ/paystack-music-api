@@ -47,23 +47,22 @@ app.get('/authorize', async function (request, response) {
 app.get('/callback', async function (request, response) {
   try {
     // const tokens = spotify.getTokensFromDB();
-
     const code = request.query.code;
     const response = await spotify.getTokensFromAPI(code);
-  
+    console.log('response', response);
     spotify.setTokensInDB(response);
     spotify.setTokensOnAPIObject(response);
 
     const html = `
-    <!DOCTYPE html>
-    <html>
-      <head></head>
-      <body>
-        <h1>All done!</h1>
-        <p>code: <code>${JSON.stringify(check)}</code></p>
-      </body>
-    </html>
-  `;
+      <!DOCTYPE html>
+      <html>
+        <head></head>s
+        <body>
+          <h1>All done!</h1>
+          <p>code: <code>${JSON.stringify(response)}</code></p>
+        </body>
+      </html>
+    `;
     response.send(html);
   } catch(error) {
     response.send(JSON.stringify(error));
