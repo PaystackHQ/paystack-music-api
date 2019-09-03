@@ -3,13 +3,15 @@
 
 // init project
 const express = require('express');
+const querystring = require('querystring');
+const bodyParser = require('bodyparser')
 const app = express();
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
 
-// we've started you off with Express, 
-// but feel free to use whatever libs or frameworks you'd like through `package.json`.om/en/starter/static-files.html
 app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get('/', async function(request, response) {
@@ -41,7 +43,7 @@ app.get('/authorize', async function(request, response) {
 
 app.get('/callback', async function(request, response) {
   // response.sendFile(__slack + '/vChannelindex.html');
-  
+  const code = request.query.code;
   const html = `
     <!DOCTYPE html>
     <html>
