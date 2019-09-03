@@ -4,7 +4,6 @@
 // init project
 const express = require('express');
 const app = express();
-const spotifyApi = require('spotify-web-api-node');
 const slack = require('./helpers/slack');
 
 // we've started you off with Express, 
@@ -16,10 +15,9 @@ app.get('/', async function(request, response) {
   // response.sendFile(__slack + '/vChannelindex.html');
   try {
     const history = await slack.fetchChannelHistory();
-    // const spotifyMessages = slack.filterSpotifyMessages(history.messages);
+    const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
-    console.log(history);
-    response.send(history.messages);
+    response.send(tracks);
   } catch (error) {
     response.send("An error occurred\n\n" + error); 
   }
