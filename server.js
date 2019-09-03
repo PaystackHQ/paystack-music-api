@@ -5,22 +5,19 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
-
-const adapter = new FileSync('db.json')
-const db = low(adapter)
 
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
 
 app.use(express.static('public'));
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(bodyParser.json());
 
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get('/', async function(request, response) {
+app.get('/', async function (request, response) {
   // response.sendFile(__slack + '/vChannelindex.html');
   try {
     const history = await slack.fetchChannelHistory();
@@ -28,11 +25,11 @@ app.get('/', async function(request, response) {
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
     response.send(tracks);
   } catch (error) {
-    response.send("An error occurred\n\n" + error); 
+    response.send("An error occurred\n\n" + error);
   }
 });
 
-app.get('/authorize', async function(request, response) {
+app.get('/authorize', async function (request, response) {
   const authURL = spotify.createAuthURL();
   const html = `
     <!DOCTYPE html>
@@ -44,28 +41,39 @@ app.get('/authorize', async function(request, response) {
       </body>
     </html>
   `;
-  response.send(html); 
+  response.send(html);
 });
 
-app.get('/callback', async function(request, response) {
-  const code = request.query.code;
-  const accessToken(O);
-  if (db.get('accessToken').value())
-  
-  const html = `
+app.get('/callback', async function (request, response) {
+  try {
+    const code = request.query.code;
+    const tokens = spotify.getTokensFromDB();
+
+    if (tokens) {
+      const response = await spotify.getTokens();
+      if (response) {
+        // set spotifyApi credentials now
+        spotify.setTokens(response);
+      }
+    }
+
+    const html = `
     <!DOCTYPE html>
     <html>
       <head></head>
       <body>
         <h1>All done!</h1>
-        <p>code: <code>${code}</code></p>
+        <p>code: <code>${accessToken}</code></p>
       </body>
     </html>
   `;
-  response.send(html); 
+    response.send(html);
+  } catch(error) {
+    response.send(JSON.stringify(error));
+  }
 });
 
 // listen for requests :)
-const listener = app.listen(process.env.PORT, function() {
+const listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });

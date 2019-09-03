@@ -1,4 +1,9 @@
 const SpotifyWebApi = require('spotify-web-api-node');
+const low = require('lowdb')
+const FileSync = require('lowdb/adapters/FileSync')
+
+const adapter = new FileSync('db.json')
+const db = low(adapter)
 
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -13,7 +18,7 @@ module.exports = {
     return spotifyApi.createAuthorizeURL(scopes);
   },
 
-  async getTokens(code) {
+  async getTokensFromSpotify(code) {
     try {
       const response = await spotifyApi.authorizationCodeGrant(code);
       return {
@@ -24,5 +29,13 @@ module.exports = {
     } catch (error) {
       return null;
     }
+  },
+
+  setTokensInDB(response) {
+
+  },
+
+  getTokensFromDB() {
+    
   }
 };
