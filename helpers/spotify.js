@@ -55,9 +55,9 @@ module.exports = {
   },
 
   setTokensInDB(params) {
-    db.set('accessToken', params.accessToken);
-    db.set('refreshToken', params.refreshToken);
-    db.set('expiry', params.expiry);
+    db.set('accessToken', params.accessToken).write();
+    db.set('refreshToken', params.refreshToken).write();
+    db.set('expiry', params.expiry).write();
   },
 
   setTokensOnAPIObject(params) {
@@ -77,4 +77,8 @@ module.exports = {
       return null
     }
   },
+
+  createPlaylist() {
+    
+  }
 };
