@@ -35,7 +35,8 @@ app.get('/authorize', async function (req, res) {
     <html>
       <head></head>
       <body>
-        <h1>Hello World!</h1>
+        <h1>Hello!</h1>
+        <p>Please make sure you're logged into Paystack's Community Spotify</p>
         <a target="_blank" href="${authURL}">Click here to authorize</a>
       </body>
     </html>
@@ -62,9 +63,24 @@ app.get('/callback', async function (req, res) {
       </html>
     `;
     res.send(html);
-  } catch(error) {
+  } catch (error) {
     console.log('error', error);
     res.send(JSON.stringify(error));
+  }
+});
+
+app.get('/trigger', async function (req, res) {
+  const tokens = spotify.getTokensFromDB();
+  if (tokens) {
+    res.send(`I found tokens in the db - ${JSON.stringify(tokens)}`);
+    // refresh access token if old one has expired
+    // create new playlist
+    
+    // and songs to said playlist
+    // generate album art
+    // end
+  } else {
+    res.send('Omo, there were no tokens there o');
   }
 });
 
