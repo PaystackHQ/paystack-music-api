@@ -17,19 +17,18 @@ app.use(bodyParser.json());
 
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get('/', async function (request, response) {
-  // response.sendFile(__slack + '/vChannelindex.html');
+app.get('/', async function (req, res) {
   try {
     const history = await slack.fetchChannelHistory();
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
-    response.send(tracks);
+    res.send(tracks);
   } catch (error) {
-    response.send("An error occurred\n\n" + error);
+    res.send("An error occurred\n\n" + error);
   }
 });
 
-app.get('/authorize', async function (request, response) {
+app.get('/authorize', async function (req, res) {
   const authURL = spotify.createAuthURL();
   const html = `
     <!DOCTYPE html>
@@ -41,13 +40,12 @@ app.get('/authorize', async function (request, response) {
       </body>
     </html>
   `;
-  response.send(html);
+  res.send(html);
 });
 
-app.get('/callback', async function (request, response) {
+app.get('/callback', async function (req, res) {
   try {
-    // const tokens = spotify.getTokensFromDB();
-    const code = request.query.code;
+    const code = req.query.code;
     const response = await spotify.getTokensFromAPI(code);
     console.log('response', response);
     spotify.setTokensInDB(response);
@@ -56,16 +54,17 @@ app.get('/callback', async function (request, response) {
     const html = `
       <!DOCTYPE html>
       <html>
-        <head></head>s
+        <head></head>
         <body>
           <h1>All done!</h1>
-          <p>code: <code>${JSON.stringify(response)}</code></p>
+          <a target="_blank" href="${process.env.APP_TRIGGER_URI}">Click here to trigger everything</a>
         </body>
       </html>
     `;
-    response.send(html);
+    res.send(html);
   } catch(error) {
-    response.send(JSON.stringify(error));
+    console.log('error', error);
+    res.send(JSON.stringify(error));
   }
 });
 

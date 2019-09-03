@@ -65,29 +65,16 @@ module.exports = {
     spotifyApi.setRefreshToken(params.refreshToken);
   },
 
-  async refreshAccessTokenFromAPI() {
+  async refreshTokensFromAPI() {
     try {
       const response = await spotifyApi.refreshAccessToken();
-      const tokens = {
+      return {
         expiry: response.body['expires_in'],
         accessToken: response.body['access_token'],
         refreshToken: response.body['refresh_token'],
       };
-      setTokensInDB(tokens);
-      setTokensOnAPIObject(tokens);
     } catch (error) {
-      
+      return null
     }
-    spotifyApi.refreshAccessToken().then(
-      function(data) {
-        console.log('The access token has been refreshed!');
-    
-        // Save the access token so that it's used in future calls
-        spotifyApi.setAccessToken(data.body['access_token']);
-      },
-      function(err) {
-        console.log('Could not refresh access token', err);
-      }
-    );
   },
 };
