@@ -27,6 +27,7 @@ module.exports = {
   async getTokensFromAPI(code) {
     try {
       const response = await spotifyApi.authorizationCodeGrant(code);
+      
       return {
         expiry: response.body['expires_in'],
         accessToken: response.body['access_token'],

@@ -46,18 +46,13 @@ app.get('/authorize', async function (request, response) {
 
 app.get('/callback', async function (request, response) {
   try {
-    const tokens = spotify.getTokensFromDB();
-    const check
+    // const tokens = spotify.getTokensFromDB();
 
-    if (!tokens) {
-      const code = request.query.code;
-      const response = await spotify.getTokensFromAPI(code);
-      if (response) {
-        // set spotifyApi credentials now
-        spotify.setTokensInDB(response);
-        spotify.setTokensOnAPIObject(response);
-      }
-    }
+    const code = request.query.code;
+    const response = await spotify.getTokensFromAPI(code);
+  
+    spotify.setTokensInDB(response);
+    spotify.setTokensOnAPIObject(response);
 
     const html = `
     <!DOCTYPE html>
@@ -65,7 +60,7 @@ app.get('/callback', async function (request, response) {
       <head></head>
       <body>
         <h1>All done!</h1>
-        <p>code: <code>${JSON.stringify()}</code></p>
+        <p>code: <code>${JSON.stringify(check)}</code></p>
       </body>
     </html>
   `;
