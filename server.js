@@ -3,15 +3,16 @@
 
 // init project
 const express = require('express');
-const querystring = require('querystring');
-const bodyParser = require('bodyparser')
+const bodyParser = require('body-parser');
 const app = express();
+
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get('/', async function(request, response) {
@@ -42,7 +43,6 @@ app.get('/authorize', async function(request, response) {
 });
 
 app.get('/callback', async function(request, response) {
-  // response.sendFile(__slack + '/vChannelindex.html');
   const code = request.query.code;
   const html = `
     <!DOCTYPE html>
@@ -50,6 +50,7 @@ app.get('/callback', async function(request, response) {
       <head></head>
       <body>
         <h1>All done!</h1>
+        <p>code: <code>${code}</code></p>
       </body>
     </html>
   `;

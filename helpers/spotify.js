@@ -11,5 +11,15 @@ const scopes = ['playlist-modify-public'];
 module.exports = {
   createAuthURL() {
     return spotifyApi.createAuthorizeURL(scopes);
+  },
+  async getTokens(code) {
+    try {
+      const response = await spotifyApi.authorizationCodeGrant(code);
+      return {
+        accessToken: response.body['expires_in']
+      }
+    } catch (error) {
+
+    }
   }
 };
