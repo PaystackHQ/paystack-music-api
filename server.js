@@ -5,6 +5,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
+const low = require('lowdb')
+const FileSync = require('lowdb/adapters/FileSync')
+
+const adapter = new FileSync('db.json')
+const db = low(adapter)
 
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
@@ -44,6 +49,9 @@ app.get('/authorize', async function(request, response) {
 
 app.get('/callback', async function(request, response) {
   const code = request.query.code;
+  const accessToken(O);
+  if (db.get('accessToken').value())
+  
   const html = `
     <!DOCTYPE html>
     <html>

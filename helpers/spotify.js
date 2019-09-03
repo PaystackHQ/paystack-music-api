@@ -12,14 +12,17 @@ module.exports = {
   createAuthURL() {
     return spotifyApi.createAuthorizeURL(scopes);
   },
+
   async getTokens(code) {
     try {
       const response = await spotifyApi.authorizationCodeGrant(code);
       return {
-        accessToken: response.body['expires_in']
+        expiry: response.body['expires_in'],
+        accessToken: response.body['access_token'],
+        refreshToken: response.body['refresh_token'],
       }
     } catch (error) {
-
+      return null;
     }
   }
 };
