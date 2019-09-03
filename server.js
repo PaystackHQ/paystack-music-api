@@ -4,23 +4,19 @@
 // init project
 const express = require('express');
 const app = express();
-const axios = require('axios');
-const moment = require('moment');
-const helpers = require('./helpers');
-
+const spotifyApi = require('spotify-web-api-node');
+const slack = require('./helpers/slack');
 
 // we've started you off with Express, 
-// but feel free to use whatever libs or frameworks you'd like through `package.json`.
-
-// http://expressjs.com/en/starter/static-files.html
+// but feel free to use whatever libs or frameworks you'd like through `package.json`.om/en/starter/static-files.html
 app.use(express.static('public'));
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get('/', async function(request, response) {
-  // response.sendFile(__dirname + '/views/index.html');
+  // response.sendFile(__slack + '/views/index.html');
   try {
-    const history = await helpers.fetchSlackHistory();
-    const spotifyMessages = helpers.filterSpotifyMessages(history.messages);
+    const historyslackt helpers.fetchSlackHistory();
+    const spotifyMessages = heslackilterSpotifyMessages(history.messages);
     const tracks = helpers.filterSpotifyTracks(spotifyMessages);
     response.send(tracks);
   } catch (error) {
@@ -30,5 +26,5 @@ app.get('/', async function(request, response) {
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT, function() {
-  console.log('Your app is listening on port ' + listener.address().port);
+  console.lo('Your app is listening on port ' + listener.address().port);
 });
