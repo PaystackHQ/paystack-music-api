@@ -27,7 +27,6 @@ module.exports = {
   async getTokensFromAPI(code) {
     try {
       const response = await spotifyApi.authorizationCodeGrant(code);
-      
       return {
         expiry: response.body['expires_in'],
         accessToken: response.body['access_token'],
@@ -78,7 +77,13 @@ module.exports = {
     }
   },
 
-  createPlaylist() {
-    
+  async createPlaylist(name) {
+    try {
+      const response = await spotifyApi.createPlaylist(name, { 'public' : false });
+      return response;
+    } catch (error) {
+      console.log('error o', error)
+      return null;
+    }
   }
 };

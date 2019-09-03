@@ -72,10 +72,12 @@ app.get('/callback', async function (req, res) {
 app.get('/trigger', async function (req, res) {
   const tokens = spotify.getTokensFromDB();
   if (tokens) {
-    res.send(`I found tokens in the db - ${JSON.stringify(tokens)}`);
+    // res.send(`I found tokens in the db - ${JSON.stringify(tokens)}`);
     // refresh access token if old one has expired
     // create new playlist
-    
+    const playlist = await spotify.createPlaylist('Testing one none');
+    console.log('playlist - ', playlist);
+    res.send(`Made a playlist bro ${JSON.stringify(playlist)}`);
     // and songs to said playlist
     // generate album art
     // end
