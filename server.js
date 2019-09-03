@@ -77,6 +77,8 @@ app.get('/trigger', async function (req, res) {
     // create new playlist
     const playlist = await spotify.createPlaylist('Testing one none');
     console.log('playlist - ', playlist);
+    console.log('accessToken', db.get('accessToken').value());
+    
     res.send(`Made a playlist bro ${JSON.stringify(playlist)}`);
     // and songs to said playlist
     // generate album art

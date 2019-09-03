@@ -79,7 +79,9 @@ module.exports = {
 
   async createPlaylist(name) {
     try {
-      const response = await spotifyApi.createPlaylist(name, { 'public' : false });
+      const userId = process.env.SPOTIFY_USER_ID;
+      console.log('try to create - user id=', userId);
+      const response = await spotifyApi.createPlaylist(userId, name, { 'public' : false });
       return response;
     } catch (error) {
       console.log('error o', error)
