@@ -25,8 +25,7 @@ module.exports = {
   },
 
   async getTokensFromAPI(code) {
-    try {
-      const response = await spotifyApi.authorizationCodeGrant(code);
+    return spotifyApi.authorizationCodeGrant(code).then(response +);
       return {
         expiry: response.body['expires_in'],
         accessToken: response.body['access_token'],
@@ -78,14 +77,9 @@ module.exports = {
   },
 
   async createPlaylist(name, tokens) {
-    try {
-      this.setTokensOnAPIObject(tokens);
-      const userId = process.env.SPOTIFY_USER_ID;
-      const response = await spotifyApi.createPlaylist(userId, name, { 'public' : true });
-      return response;
-    } catch (error) {
-      console.log('error o', error)
-      return null;
-    }
+    this.setTokensOnAPIObject(tokens);
+    const userId = process.env.SPOTIFY_USER_ID;
+    const response = await spotifyApi.createPlaylist(userId, name, { 'public' : true });
+    return response;
   }
 };
