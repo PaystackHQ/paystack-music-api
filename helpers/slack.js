@@ -8,7 +8,7 @@ module.exports = {
     const url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_CHANNEL}&oldest=${startTime}&latest=${endTime}inclusive=true&pretty=1`;
     return axios.get(url).then(response => response.data);
   },
-  
+
   filterSpotifyMessages(messages) {
     const spotifyMessages = []
     messages.forEach(msg => {
@@ -16,10 +16,10 @@ module.exports = {
         msg.attachments.forEach(attachment => {
           if (attachment.service_name === "Spotify") {
             // attachment.service_name === "YouTube") {
-            spotifyMessages.push({ 
-              service: attachment.service_name, 
-              title: attachment.title, 
-              link: attachment.title_link 
+            spotifyMessages.push({
+              service: attachment.service_name,
+              title: attachment.title,
+              link: attachment.title_link
             });
           }
         });
@@ -27,7 +27,7 @@ module.exports = {
     });
     return spotifyMessages;
   },
-  
+
   filterSpotifyTracks(spotifyMessages) {
     const tracks = [];
     spotifyMessages.forEach(msg => {
@@ -39,26 +39,33 @@ module.exports = {
         });
       }
     });
-    return tracks;
+    return tracks.map(track => ({
+      ...track,
+      id: track.id.split('?')[0]
+    }));
   },
-  
+
   createPlaylist(token, name, description) {
     const url = 'https://api.spotify.com/v1/playlists';
-    const headers = { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` };
+    const headers = {
+      Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}`
+    };
     return axios.post(url, {
       name,
       description,
       public: true
-    }, { headers }).then(response => response.data);
+    }, {
+      headers
+    }).then(response => response.data);
   },
-  
+
   addSongsToPlaylist(playlist, songs) {
-    
+
   },
-  
+
   getSpotifyToken() {
     const encodedToken = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY}`).toString('base64');
-    const headers = { 
+    const headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
       Authorization: `Basic ${encodedToken}`
     };

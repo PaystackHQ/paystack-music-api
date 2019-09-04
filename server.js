@@ -17,8 +17,6 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
-
-// http://expressjs.com/en/starter/basic-routing.html
 app.get('/', async function (req, res) {
   try {
     const history = await slack.fetchChannelHistory();
@@ -75,28 +73,28 @@ app.get('/callback', async function (req, res) {
 
 app.get('/trigger', async function (req, res) {
   try {
-    let tokens = spotify.getTokensFromDB();
-    console.log("tokens", tokens);
+    const tokens = spotify.getTokensFromDB();
 
     // check if there are valid tokens in our DB
-    if (tokens) {
+    if (tokens.refreshToken) {
       const oneHour = 1000 * 60 * 60; 
       const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
       spotify.setTokensOnAPIObject(tokens);
 
        // refresh access token if old one has expired
       if (!isTokenValid) {
-        tokens = await spotify.refreshTokensFromAPI();
-        spotify.setTokensInDB(tokens);
-        spotify.setTokensOnAPIObject(tokens);
+        const accessToken = await spotify.refreshAccessTokenFromAPI(); 
+        spotify.setAccessTokenInDB(accessToken);
+        spotify.setAccessTokenOnAPIObject(accessToken);
       }
      
       // create new playlist
-      const playlist = await spotify.createPlaylist('Testing one none 555', tokens);
-      console.log('playlist - ', playlist);
+      const playlist = await spotify.createPlaylist('Playlist with song');
+      // res.send(`Made a playlist bro 5555 ${JSON.stringify(playlist)}`);
 
-      res.send(`Made a playlist bro 5555 ${JSON.stringify(playlist)}`);
       // and songs to said playlist
+      const tracks = await spotify.addTracksToPlaylist(playlist.id, ['spotify:track:1kjQIdgSL6GaVcPzbmiCsU']);
+      res.send(`Made a playlist bro 5555 ${JSON.stringify(tracks)}`);
       // generate album art
       // attach album art to playlist
       // end
