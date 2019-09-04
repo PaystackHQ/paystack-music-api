@@ -71,17 +71,27 @@ app.get('/callback', async function (req, res) {
 
 app.get('/trigger', async function (req, res) {
   try {
-    const tokens = spotify.getTokensFromDB();
+    let tokens = spotify.getTokensFromDB();
+    spotify.setTokensOnAPIObject(tokens);
+
+    // check if there are valid tokens in our DB
     if (tokens) {
-      // res.send(`I found tokens in the db - ${JSON.stringify(tokens)}`);
-      const oneHour = 1000 * 60 * 60;
-      if (Date.now() - tokens.timestamp)
-      // refresh access token if old one has expired
+      // const oneHour = 1000 * 60 * 60; 
+      const oneHour = 60;
+      const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
+
+       // refresh access token if old one has expired
+      if (!isTokenValid) {
+        tokens = await spotify.refreshTokensFromAPI();
+        spotify.setTokensInDB(tokens);
+        spotify.setTokensOnAPIObject(tokens);
+      }
+     
       // create new playlist
-      const playlist = await spotify.createPlaylist('Testing one none', tokens);
+      const playlist = await spotify.createPlaylist('Testing one none 555', tokens);
       console.log('playlist - ', playlist);
 
-      res.send(`Made a playlist bro ${JSON.stringify(playlist)}`);
+      res.send(`Made a playlist bro 5555 ${JSON.stringify(playlist)}`);
       // and songs to said playlist
       // generate album art
       // attach album art to playlist
