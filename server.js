@@ -4,6 +4,7 @@
 // init project
 const express = require('express');
 const bodyParser = require('body-parser');
+const moment = require('moment');
 const app = express();
 const dotenv = require('dotenv');
 dotenv.config();
@@ -49,8 +50,6 @@ app.get('/callback', async function (req, res) {
     const code = req.query.code;
     const response = await spotify.getTokensFromAPI(code);
 
-    console.log("response", response);
-
     spotify.setTokensInDB(response);
     spotify.setTokensOnAPIObject(response);
 
@@ -66,16 +65,17 @@ app.get('/callback', async function (req, res) {
     `;
     res.send(html);
   } catch (error) {
-    console.log('error', error);
     res.send(JSON.stringify(error));
   }
 });
 
 app.get('/trigger', async function (req, res) {
   try {
-    
+    const date = req.query.date;
+    const month = moment(date).subtract(1,'months');
+    const monthName = month.format('MMMM YYYY');
 
-    const history = await slack.fetchChannelHistory();
+    const history = await slack.fetchChannelHistory(month);
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
 
@@ -95,13 +95,13 @@ app.get('/trigger', async function (req, res) {
       }
      
       // create new playlist
-      const playlist = await spotify.createPlaylist('Playlist with song');
+      const playlist = await spotify.createPlaylist(monthName);
       // res.send(`Made a playlist bro 5555 ${JSON.stringify(playlist)}`);
 
       // and songs to said playlist
       const trackURIs = tracks.map(track => `spotify:track:${track.id}`);
       await spotify.addTracksToPlaylist(playlist.id, trackURIs);
-      res.send(`August Playlist, check spotify`);
+      res.send(`${monthName} playlist, check spotify`);
       // generate album art
       // attach album art to playlist
       // end

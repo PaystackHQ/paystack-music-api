@@ -1,10 +1,9 @@
 const axios = require('axios');
-const moment = require('moment');
 
 module.exports = {
-  async fetchChannelHistory() {
-    const startTime = moment('2019-08').startOf('month').format('X.SSSSSS');
-    const endTime = moment('2019-08').endOf('month').format('X.SSSSSS');
+  async fetchChannelHistory(month) {
+    const startTime = month.startOf('month').format('X.SSSSSS');
+    const endTime = month.endOf('month').format('X.SSSSSS');
     const url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_CHANNEL}&oldest=${startTime}&latest=${endTime}inclusive=true&pretty=1`;
     return axios.get(url).then(response => response.data);
   },
