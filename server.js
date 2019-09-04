@@ -73,6 +73,12 @@ app.get('/callback', async function (req, res) {
 
 app.get('/trigger', async function (req, res) {
   try {
+    
+
+    const history = await slack.fetchChannelHistory();
+    const spotifyMessages = slack.filterSpotifyMessages(history.messages);
+    const tracks = slack.filterSpotifyTracks(spotifyMessages);
+
     const tokens = spotify.getTokensFromDB();
 
     // check if there are valid tokens in our DB
@@ -93,8 +99,9 @@ app.get('/trigger', async function (req, res) {
       // res.send(`Made a playlist bro 5555 ${JSON.stringify(playlist)}`);
 
       // and songs to said playlist
-      const tracks = await spotify.addTracksToPlaylist(playlist.id, ['spotify:track:1kjQIdgSL6GaVcPzbmiCsU']);
-      res.send(`Made a playlist bro 5555 ${JSON.stringify(tracks)}`);
+      const trackURIs = tracks.map(track => `spotify:track:${track.id}`);
+      await spotify.addTracksToPlaylist(playlist.id, trackURIs);
+      res.send(`August Playlist, check spotify`);
       // generate album art
       // attach album art to playlist
       // end
