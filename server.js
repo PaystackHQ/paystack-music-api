@@ -49,6 +49,8 @@ app.get('/callback', async function (req, res) {
     const code = req.query.code;
     const response = await spotify.getTokensFromAPI(code);
 
+    console.log("response", response);
+
     spotify.setTokensInDB(response);
     spotify.setTokensOnAPIObject(response);
 
@@ -72,13 +74,13 @@ app.get('/callback', async function (req, res) {
 app.get('/trigger', async function (req, res) {
   try {
     let tokens = spotify.getTokensFromDB();
-    spotify.setTokensOnAPIObject(tokens);
+    console.log("tokens", tokens);
 
     // check if there are valid tokens in our DB
     if (tokens) {
-      // const oneHour = 1000 * 60 * 60; 
-      const oneHour = 60;
+      const oneHour = 1000 * 60 * 60; 
       const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
+      spotify.setTokensOnAPIObject(tokens);
 
        // refresh access token if old one has expired
       if (!isTokenValid) {
@@ -100,6 +102,7 @@ app.get('/trigger', async function (req, res) {
       res.send('Omo, there were no tokens there o');
     } 
   } catch (error) {
+    console.log("error", error);
     res.send(error);
   }
 });
