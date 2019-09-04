@@ -48,7 +48,7 @@ app.get('/callback', async function (req, res) {
   try {
     const code = req.query.code;
     const response = await spotify.getTokensFromAPI(code);
-    console.log('response', response);
+
     spotify.setTokensInDB(response);
     spotify.setTokensOnAPIObject(response);
 
@@ -74,6 +74,8 @@ app.get('/trigger', async function (req, res) {
     const tokens = spotify.getTokensFromDB();
     if (tokens) {
       // res.send(`I found tokens in the db - ${JSON.stringify(tokens)}`);
+      const oneHour = 1000 * 60 * 60;
+      if (Date.now() - tokens.timestamp)
       // refresh access token if old one has expired
       // create new playlist
       const playlist = await spotify.createPlaylist('Testing one none', tokens);

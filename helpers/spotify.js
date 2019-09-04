@@ -8,7 +8,7 @@ const db = low(adapter);
 db.defaults({
   accessToken: null,
   refreshToken: null,
-  expiry: null
+  timestamp: null
 }).write()
 
 const spotifyApi = new SpotifyWebApi({
@@ -25,25 +25,24 @@ module.exports = {
   },
 
   async getTokensFromAPI(code) {
-    return spotifyApi.authorizationCodeGrant(code).then(response +);
-      return {
-        expiry: response.body['expires_in'],
-        accessToken: response.body['access_token'],
-        refreshToken: response.body['refresh_token'],
-      }
-    } catch (error) {
-      return null;
-    }
+    return spotifyApi.authorizationCodeGrant(code)
+      .then(response => {
+        return {
+          timestamp: Date.now(),
+          accessToken: response.body['access_token'],
+          refreshToken: response.body['refresh_token'],
+        }
+      });
   },
 
   getTokensFromDB() {
     const accessToken = db.get('accessToken').value();
     const refreshToken = db.get('refreshToken').value();
-    const expiry = db.get('expiry').value();
+    const timestamp = db.get('timestamp').value();
 
-    if (accessToken && refreshToken && expiry) {
+    if (accessToken && refreshToken && timestamp) {
       return {
-        expiry,
+        timestamp,
         accessToken,
         refreshToken
       }
@@ -55,7 +54,7 @@ module.exports = {
   setTokensInDB(params) {
     db.set('accessToken', params.accessToken).write();
     db.set('refreshToken', params.refreshToken).write();
-    db.set('expiry', params.expiry).write();
+    db.set('timestamp', params.timestamp).write();
   },
 
   setTokensOnAPIObject(params) {
@@ -64,16 +63,14 @@ module.exports = {
   },
 
   async refreshTokensFromAPI() {
-    try {
-      const response = await spotifyApi.refreshAccessToken();
-      return {
-        expiry: response.body['expires_in'],
-        accessToken: response.body['access_token'],
-        refreshToken: response.body['refresh_token'],
-      };
-    } catch (error) {
-      return null
-    }
+    return spotifyApi.refreshAccessToken()
+      .then(response => {
+        return {
+          timestamp: Date.now(),
+          accessToken: response.body['access_token'],
+          refreshToken: response.body['refresh_token'],
+        };
+      })
   },
 
   async createPlaylist(name, tokens) {
