@@ -5,6 +5,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
+const dotenv = require('dotenv');
+dotenv.config();
 
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
