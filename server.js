@@ -12,6 +12,7 @@ dotenv.config();
 
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
+const color = require('./helpers/color');
 
 app.use("/public", express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({
@@ -73,7 +74,7 @@ app.get('/callback', async function (req, res) {
 app.get('/trigger', async function (req, res) {
   try {
     const date = req.query.date;
-    const month = moment(date).subtract(1,'months');
+    const month = moment(date).subtract(1, 'months');
     const monthName = month.format('MMMM YYYY');
 
     const history = await slack.fetchChannelHistory(month);
@@ -96,15 +97,22 @@ app.get('/trigger', async function (req, res) {
       }
      
       // create new playlist
-      const playlist = await spotify.createPlaylist(monthName);
-      // res.send(`Made a playlist bro 5555 ${JSON.stringify(playlist)}`);
+      let playlist = await spotify.createPlaylist(monthName);
 
       // and songs to said playlist
       const trackURIs = tracks.map(track => `spotify:track:${track.id}`);
       await spotify.addTracksToPlaylist(playlist.id, trackURIs);
       // generate album art
+      // get playlist art
+      playlist = await spotify.getPlaylist(playlist.id);
+      const coverImageUrl = playlist.images[0].url;
+      const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
+      console.log('got dominant color: ', dominantColor);
+      
+        // pick color from current album art
+        // open url and take screenshot
       // attach album art to playlist
-      // end
+      // send playlist to slack
       res.send(`${monthName} playlist, check spotify`);
     } else {
       res.send('Omo, there were no tokens there o');

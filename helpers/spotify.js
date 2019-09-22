@@ -80,5 +80,10 @@ module.exports = {
 
   addTracksToPlaylist(id, tracks) {
     return spotifyApi.addTracksToPlaylist(id, tracks);
+  },
+
+  getPlaylist(id) {
+    return spotifyApi.getPlaylist(id)
+      .then(response => response.body);
   }
 };

@@ -58,10 +58,6 @@ module.exports = {
     }).then(response => response.data);
   },
 
-  addSongsToPlaylist(playlist, songs) {
-
-  },
-
   getSpotifyToken() {
     const encodedToken = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY}`).toString('base64');
     const headers = {
