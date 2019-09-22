@@ -6,6 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const app = express();
+const path = require("path");
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -113,6 +114,11 @@ app.get('/trigger', async function (req, res) {
     res.send(error);
   }
 });
+
+app.get('/covers', async function (req, res) {
+  res.sendFile(path.join(__dirname+'/views/covers.html'));
+});
+
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT, function () {

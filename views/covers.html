@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Slack Music Cover Generator</title>
+  <style>
+    html,
+    body {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    .canvas {
+      height: 640px;
+      width: 640px;
+      position: relative;
+      background-color: yellow;
+      margin: 0;
+    }
+    .text {
+      font-family: 'Helvetica';
+      font-size: 48px;
+      bottom: 0px;
+      right: 0px;
+      text-align: right;
+      width: 100%;
+      padding: 30px;
+      position: absolute;
+    }
+    .month {
+      font-family: 'serif';
+      font-weight: 600;
+    }
+    .year {
+      font-weight: 200;
+    }
+    .logo {
+      position: absolute;
+      left: 30px;
+      top: 30px;
+      height: 75px;
+      width: 75px;
+      background-color: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="canvas" id="canvas">
+    <div class="logo"></div>
+    <div class="text">
+      <span class="month" id="month-text">september</span>
+      <span class="year">‘<span id="year-text">19</span></span>
+    </div>
+  </div>
+
+  <script>
+    const url = new URL(window.location.href);
+    const year = url.searchParams.get("year");
+    const month = url.searchParams.get("month");
+    const color = url.searchParams.get("color");
+    // const year = '2020';
+    // const month = 'August';
+    // const color = 'red'
+    document.getElementById('canvas').style.background = color;
+    document.getElementById('month-text').innerHTML = month.toLowerCase();
+    document.getElementById('year-text').innerHTML = year.substring(2);
+  </script>
+</body>
+
+</html>
