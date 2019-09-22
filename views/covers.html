@@ -7,67 +7,106 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Slack Music Cover Generator</title>
   <style>
+    @font-face {
+      font-family: 'Boing';
+      font-style: normal;
+      font-weight: 600;
+      src: url('../public/boing_semibold_web.woff') format('woff');
+      text-rendering: optimizeLegibility;
+      unicode-range: U+000-5FF;
+    }
+
+    @font-face {
+      font-family: 'Graphik';
+      font-style: normal;
+      font-weight: 300;
+      src: url('../public/graphik_light.woff') format('woff');
+      text-rendering: optimizeLegibility;
+      unicode-range: U+000-5FF;
+    }
+
     html,
     body {
       padding: 0;
       margin: 0;
       box-sizing: border-box;
     }
+
     .canvas {
       height: 640px;
       width: 640px;
       position: relative;
-      background-color: yellow;
+      background-color: blue;
       margin: 0;
     }
+
     .text {
-      font-family: 'Helvetica';
-      font-size: 48px;
+      font-size: 36px;
       bottom: 0px;
       right: 0px;
       text-align: right;
       width: 100%;
-      padding: 30px;
+      padding: 25px 30px;
       position: absolute;
+      color: white;
     }
+
     .month {
-      font-family: 'serif';
+      font-family: 'Boing';
       font-weight: 600;
     }
+
     .year {
-      font-weight: 200;
+      font-weight: 300;
+      font-family: 'Graphik';
     }
+
     .logo {
       position: absolute;
       left: 30px;
       top: 30px;
-      height: 75px;
-      width: 75px;
-      background-color: #000;
+      height: 50px;
+      width: 50px;
+    }
+
+    .logo svg {
+      height: 100%;
+      width: 100%;
     }
   </style>
 </head>
 
 <body>
   <div class="canvas" id="canvas">
-    <div class="logo"></div>
+    <div class="logo">
+      <svg viewBox="0 0 612 602" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0)" fill="#fff">
+          <path d="M548.416 0H31.792C14.306 0 0 14.333 0 31.852v57.333c0 17.519 14.306 31.852 31.792 31.852h515.034c17.486 0 31.792-14.333 31.792-31.852V31.852C580.208 14.333 565.901 0 548.416 0zm0 320.111H31.792C14.306 320.111 0 334.444 0 351.963v57.333c0 17.519 14.306 31.852 31.792 31.852h515.034c17.486 0 31.792-14.333 31.792-31.852v-57.333c1.59-17.519-12.717-31.852-30.202-31.852zM322.691 480.963H31.792C14.306 480.963 0 495.296 0 512.815v57.333C0 587.667 14.306 602 31.792 602h290.899c17.486 0 31.792-14.333 31.792-31.852v-57.333c0-17.519-14.306-31.852-31.792-31.852zm257.517-320.111H31.792C14.306 160.852 0 175.185 0 192.703v57.334c0 17.518 14.306 31.852 31.792 31.852h548.416c17.486 0 31.792-14.334 31.792-31.852v-57.334c0-17.518-14.306-31.851-31.792-31.851z"/>
+        </g>
+        <defs>
+          <clipPath id="clip0">
+            <path fill="#fff" d="M0 0h612v602H0z"/>
+          </clipPath>
+        </defs>
+      </svg>
+    </div>
     <div class="text">
       <span class="month" id="month-text">september</span>
-      <span class="year">‘<span id="year-text">19</span></span>
+      <class class="year" id="year-text">‘19</span>
     </div>
   </div>
 
   <script>
-    const url = new URL(window.location.href);
-    const year = url.searchParams.get("year");
-    const month = url.searchParams.get("month");
-    const color = url.searchParams.get("color");
-    // const year = '2020';
-    // const month = 'August';
-    // const color = 'red'
-    document.getElementById('canvas').style.background = color;
-    document.getElementById('month-text').innerHTML = month.toLowerCase();
-    document.getElementById('year-text').innerHTML = year.substring(2);
+    // const url = new URL(window.location.href);
+    // const year = url.searchParams.get("year");
+    // const month = url.searchParams.get("month");
+    // const color = url.searchParams.get("color");
+    // // const year = '2020';
+    // // const month = 'August';
+    // // const color = 'red'
+    // document.getElementById('canvas').style.background = color;
+    // document.getElementById('month-text').innerHTML = month.toLowerCase();
+    // document.getElementById('year-text').innerHTML = year.substring(2);
   </script>
 </body>
 

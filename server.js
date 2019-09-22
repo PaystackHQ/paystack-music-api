@@ -13,7 +13,7 @@ dotenv.config();
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
 
-app.use(express.static('public'));
+app.use("/public", express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({
   extended: false
 }));
