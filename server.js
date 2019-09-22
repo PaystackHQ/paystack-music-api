@@ -102,10 +102,10 @@ app.get('/trigger', async function (req, res) {
       // and songs to said playlist
       const trackURIs = tracks.map(track => `spotify:track:${track.id}`);
       await spotify.addTracksToPlaylist(playlist.id, trackURIs);
-      res.send(`${monthName} playlist, check spotify`);
       // generate album art
       // attach album art to playlist
       // end
+      res.send(`${monthName} playlist, check spotify`);
     } else {
       res.send('Omo, there were no tokens there o');
     } 
