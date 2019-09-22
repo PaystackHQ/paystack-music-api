@@ -41,7 +41,7 @@
     }
 
     .text {
-      font-size: 36px;
+      font-size: 40px;
       bottom: 0px;
       right: 0px;
       text-align: right;
@@ -97,16 +97,14 @@
   </div>
 
   <script>
-    // const url = new URL(window.location.href);
-    // const year = url.searchParams.get("year");
-    // const month = url.searchParams.get("month");
-    // const color = url.searchParams.get("color");
-    // // const year = '2020';
-    // // const month = 'August';
-    // // const color = 'red'
-    // document.getElementById('canvas').style.background = color;
-    // document.getElementById('month-text').innerHTML = month.toLowerCase();
-    // document.getElementById('year-text').innerHTML = year.substring(2);
+    const url = new URL(window.location.href);
+    const year = url.searchParams.get("year");
+    const month = url.searchParams.get("month");
+    const color = url.searchParams.get("color");
+
+    document.getElementById('canvas').style.backgroundColor = color;
+    document.getElementById('month-text').innerHTML = month.toLowerCase();
+    document.getElementById('year-text').innerHTML = `‘${year.substring(2)}`;
   </script>
 </body>
 
