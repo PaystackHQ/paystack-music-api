@@ -16,20 +16,11 @@ const color = require('./helpers/color');
 const image = require('./helpers/image');
 
 app.use("/public", express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.urlencoded({
-  extended: false
-}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.get('/', async function (req, res) {
-  try {
-    const history = await slack.fetchChannelHistory();
-    const spotifyMessages = slack.filterSpotifyMessages(history.messages);
-    const tracks = slack.filterSpotifyTracks(spotifyMessages);
-    res.send(tracks);
-  } catch (error) {
-    res.send("An error occurred\n\n" + error);
-  }
+  res.send("Welcome to Paystack Music!");
 });
 
 app.get('/authorize', async function (req, res) {
@@ -110,7 +101,6 @@ app.get('/trigger', async function (req, res) {
 
       // pick color from current cover art
       const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
-      console.log('got dominant color: ', dominantColor);
       
       // create new cover art
       const newCoverImage = await image.generateCoverImage({
@@ -118,18 +108,21 @@ app.get('/trigger', async function (req, res) {
         month: playlistMonth.format('MMMM'),
         year: playlistMonth.format('YYYY')
       });
-      console.log('new cover image here: ', typeof newCoverImage);
 
       // attach album art to playlist
       await spotify.setPlaylistCover(playlist.id, newCoverImage);
 
       // send playlist to slack
-      res.send(`${playlistName} playlist, check spotify`);
+      await slack.sendMessage(playlist.external_urls.spotify);
+
+      // finish
+      res.send(`${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`);
     } else {
-      res.send('Omo, there were no tokens there o');
+      await slack.sendMessage("I couldn't authorize and create this month's playlist");
+      res.send('Omo, there were no tokens there o. Try authorizing <a href="/authorize">here</a> first.');
     } 
   } catch (error) {
-    console.log("error", error);
+    await slack.sendMessage(JSON.stringify(error));
     res.send(error);
   }
 });

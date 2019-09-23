@@ -64,5 +64,19 @@ module.exports = {
       'Content-Type': 'application/x-www-form-urlencoded',
       Authorization: `Basic ${encodedToken}`
     };
+  },
+
+  sendMessage(message) {
+    const url = 'https://slack.com/api/chat.postMessage';
+    const channel = process.env.SLACK_DM_ONYEKACHI;
+    const headers = {
+      Authorization: `Bearer ${process.env.SLACK_TOKEN}`,
+      'Content-Type': 'application/json'
+    };
+
+    return axios.post(url, {
+      channel,
+      text: message
+    }, { headers }).then(response => response.data);
   }
 };
