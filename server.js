@@ -63,9 +63,13 @@ app.get('/callback', async function (req, res) {
   }
 });
 
-app.get('/trigger', async function (req, res) {
+app.post('/trigger', async function (req, res) {
   try {
-    const date = req.query.date;
+    const dateYear = req.body.year;
+    const dateMonth = Number(req.body.month) < 10 ? `0${Number(req.body.month)}` : req.body.month;
+    const dateDay = Number(req.body.day) < 10 ? `0${Number(req.body.day)}` : req.body.day;
+    
+    const date = `${dateYear}-${dateMonth}-${dateDay}`;
     const playlistMonth = moment(date).subtract(1, 'months');
     const playlistName = playlistMonth.format('MMMM YYYY');
 
@@ -122,8 +126,10 @@ app.get('/trigger', async function (req, res) {
       res.send('Omo, there were no tokens there o. Try authorizing <a href="/authorize">here</a> first.');
     } 
   } catch (error) {
-    await slack.sendMessage(JSON.stringify(error));
-    res.send(error);
+    const e = { message: error.message, stack: error.stack };
+    await slack.sendMessage(JSON.stringify(e));
+    console.log(error);
+    res.send(JSON.stringify(e));
   }
 });
 
