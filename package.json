@@ -1,10 +1,7 @@
 {
-  "//1": "describes your app and its dependencies",
-  "//2": "https://docs.npmjs.com/files/package.json",
-  "//3": "updating this file will download and update your packages",
-  "name": "hello-express",
+  "name": "paystack-music",
   "version": "0.0.1",
-  "description": "A simple Node app built on Express, instantly up and running.",
+  "description": "Fetch music from Paystack #fun-music on Slack and create a playlist on Paystack's Spotify",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -31,8 +28,11 @@
   "license": "MIT",
   "keywords": [
     "node",
-    "glitch",
-    "express"
+    "express",
+    "paystack",
+    "slack",
+    "spotify",
+    "music"
   ],
   "devDependencies": {
     "nodemon": "^1.19.2"
