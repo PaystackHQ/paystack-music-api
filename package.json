@@ -19,6 +19,7 @@
     "express": "^4.16.4",
     "lowdb": "^1.0.0",
     "moment": "^2.24.0",
+    "puppeteer": "^1.20.0",
     "spotify-web-api-node": "^4.0.0"
   },
   "engines": {

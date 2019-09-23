@@ -6,13 +6,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const app = express();
-const path = require("path");
+const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config();
 
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
 const color = require('./helpers/color');
+const image = require('./helpers/image');
 
 app.use("/public", express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({
@@ -74,10 +75,10 @@ app.get('/callback', async function (req, res) {
 app.get('/trigger', async function (req, res) {
   try {
     const date = req.query.date;
-    const month = moment(date).subtract(1, 'months');
-    const monthName = month.format('MMMM YYYY');
+    const playlistMonth = moment(date).subtract(1, 'months');
+    const playlistName = playlistMonth.format('MMMM YYYY');
 
-    const history = await slack.fetchChannelHistory(month);
+    const history = await slack.fetchChannelHistory(playlistMonth);
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
 
@@ -97,23 +98,33 @@ app.get('/trigger', async function (req, res) {
       }
      
       // create new playlist
-      let playlist = await spotify.createPlaylist(monthName);
+      let playlist = await spotify.createPlaylist(playlistName);
 
-      // and songs to said playlist
+      // and songs to playlist
       const trackURIs = tracks.map(track => `spotify:track:${track.id}`);
       await spotify.addTracksToPlaylist(playlist.id, trackURIs);
-      // generate album art
-      // get playlist art
+      
+      // get playlist cover art
       playlist = await spotify.getPlaylist(playlist.id);
       const coverImageUrl = playlist.images[0].url;
+
+      // pick color from current cover art
       const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
       console.log('got dominant color: ', dominantColor);
       
-        // pick color from current album art
-        // open url and take screenshot
+      // create new cover art
+      const newCoverImage = await image.generateCoverImage({
+        color: dominantColor,
+        month: playlistMonth.format('MMMM'),
+        year: playlistMonth.format('YYYY')
+      });
+      console.log('new cover image here: ', typeof newCoverImage);
+
       // attach album art to playlist
+      await spotify.setPlaylistCover(playlist.id, newCoverImage);
+
       // send playlist to slack
-      res.send(`${monthName} playlist, check spotify`);
+      res.send(`${playlistName} playlist, check spotify`);
     } else {
       res.send('Omo, there were no tokens there o');
     } 
@@ -123,7 +134,7 @@ app.get('/trigger', async function (req, res) {
   }
 });
 
-app.get('/covers', async function (req, res) {
+app.get('/covers', function (req, res) {
   res.sendFile(path.join(__dirname+'/views/covers.html'));
 });
 

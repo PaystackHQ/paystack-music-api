@@ -1,6 +1,7 @@
 const SpotifyWebApi = require('spotify-web-api-node');
 const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
+const FileSync = require('lowdb/adapters/FileSync');
+const axios = require('axios');
 
 const adapter = new FileSync('db.json')
 const db = low(adapter);
@@ -17,7 +18,7 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
-const scopes = ['playlist-modify-public'];
+const scopes = ['playlist-modify-public', 'ugc-image-upload'];
 
 module.exports = {
   createAuthURL() {
@@ -73,9 +74,8 @@ module.exports = {
 
   createPlaylist(name) {
     const userId = process.env.SPOTIFY_USER_ID;
-    return spotifyApi.createPlaylist(userId, name, {
-      'public': true
-    }).then(response => response.body);
+    return spotifyApi.createPlaylist(userId, name, { 'public': true })
+      .then(response => response.body);
   },
 
   addTracksToPlaylist(id, tracks) {
@@ -85,5 +85,15 @@ module.exports = {
   getPlaylist(id) {
     return spotifyApi.getPlaylist(id)
       .then(response => response.body);
+  },
+
+  setPlaylistCover (id, image) {
+    const url = `https://api.spotify.com/v1/playlists/${id}/images`;
+    const headers = {
+      Authorization: `Bearer ${db.get('accessToken').value()}`,
+      "Content-Type": "image/jpeg",
+    };
+    return axios.put(url, image, { headers })
+      .then(response => response.data);
   }
 };
