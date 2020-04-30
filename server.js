@@ -74,6 +74,7 @@ app.post('/trigger', async function (req, res) {
     const playlistName = playlistMonth.format('MMMM YYYY');
 
     const history = await slack.fetchChannelHistory(playlistMonth);
+    
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
 
@@ -97,7 +98,13 @@ app.post('/trigger', async function (req, res) {
 
       // and songs to playlist
       const trackURIs = tracks.map(track => `spotify:track:${track.id}`);
-      await spotify.addTracksToPlaylist(playlist.id, trackURIs);
+      
+      // upload in batches of 99 
+      const batchSize = 99;
+      for (let i = 0; i < trackURIs.length; i += batchSize) {
+          let batch = trackURIs.slice(i,i + batchSize);
+          await spotify.addTracksToPlaylist(playlist.id, batch);
+      }
       
       // get playlist cover art
       playlist = await spotify.getPlaylist(playlist.id);
@@ -117,7 +124,8 @@ app.post('/trigger', async function (req, res) {
       await spotify.setPlaylistCover(playlist.id, newCoverImage);
 
       // send playlist to slack
-      await slack.sendMessage(playlist.external_urls.spotify);
+      await slack.sendMessage(playlist.external_urls.spotify, process.env.SLACK_CHANNEL);
+      await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
 
       // finish
       res.send(`${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`);
@@ -135,6 +143,10 @@ app.post('/trigger', async function (req, res) {
 
 app.get('/covers', function (req, res) {
   res.sendFile(path.join(__dirname+'/views/covers.html'));
+});
+
+app.post('/webhook', function (req, res) {
+  
 });
 
 
