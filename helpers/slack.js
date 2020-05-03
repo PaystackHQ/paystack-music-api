@@ -1,11 +1,41 @@
 const axios = require('axios');
 
 module.exports = {
-  async fetchChannelHistory(month) {
+  /**
+   * Recursive method that returns all messages from the slack channel using Slack's API pagination.
+   * @param {*} month 
+   * @param {*} cursor 
+   * @param {*} messages 
+   */
+  async fetchChannelHistory(month, cursor, messages) {
+    
+    messages = messages || [];
+    
     const startTime = month.startOf('month').format('X.SSSSSS');
     const endTime = month.endOf('month').format('X.SSSSSS');
-    const url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_CHANNEL}&oldest=${startTime}&latest=${endTime}inclusive=true&pretty=1`;
-    return axios.get(url).then(response => response.data);
+    
+    let url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_CHANNEL}&oldest=${startTime}&latest=${endTime}&inclusive=true&pretty=1`;
+    
+    // point the slack api to the new batch we want to fetch
+    if (cursor) {
+        url += `&cursor=${cursor}`;
+    }
+    
+    const history = await axios.get(url).then(response => response.data);
+    
+    // register new messages
+    messages = messages.concat(history.messages);
+
+    // check for more messages
+    if (history.has_more) {
+        const next_cursor = history.response_metadata ? history.response_metadata.next_cursor : null;
+        if (!next_cursor) {
+            return messages;
+        }
+        return this.fetchChannelHistory(month, next_cursor, messages);
+    }
+
+    return messages;
   },
 
   filterSpotifyMessages(messages) {

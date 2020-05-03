@@ -73,9 +73,14 @@ app.post('/trigger', async function (req, res) {
     const playlistMonth = moment(date).subtract(1, 'months');
     const playlistName = playlistMonth.format('MMMM YYYY');
 
-    const history = await slack.fetchChannelHistory(playlistMonth);
+    const messages = await slack.fetchChannelHistory(playlistMonth);
     
-    const spotifyMessages = slack.filterSpotifyMessages(history.messages);
+    if (!messages) {
+      res.send('Could not find any messages. Please check the channel and try again.');
+      return
+    }
+
+    const spotifyMessages = slack.filterSpotifyMessages(messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
 
     const tokens = spotify.getTokensFromDB();
@@ -125,7 +130,7 @@ app.post('/trigger', async function (req, res) {
 
       // send playlist to slack
       await slack.sendMessage(playlist.external_urls.spotify, process.env.SLACK_CHANNEL);
-      await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
+      await slack.sendMessage(`There were ${messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
 
       // finish
       res.send(`${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`);
