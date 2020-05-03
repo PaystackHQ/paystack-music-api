@@ -24,18 +24,18 @@ module.exports = {
     const history = await axios.get(url).then(response => response.data);
     
     // register new messages
-    messages = messages.concat(history.messages);
+    history.messages = messages.concat(history.messages);
 
     // check for more messages
     if (history.has_more) {
         const next_cursor = history.response_metadata ? history.response_metadata.next_cursor : null;
         if (!next_cursor) {
-            return messages;
+            return history;
         }
-        return this.fetchChannelHistory(month, next_cursor, messages);
+        return this.fetchChannelHistory(month, next_cursor, history.messages);
     }
 
-    return messages;
+    return history;
   },
 
   filterSpotifyMessages(messages) {
