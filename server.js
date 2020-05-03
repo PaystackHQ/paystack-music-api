@@ -75,6 +75,11 @@ app.post('/trigger', async function (req, res) {
 
     const history = await slack.fetchChannelHistory(playlistMonth);
     
+    if (!history.messages) {
+      res.send('Could not find any messages. Please check the channel and try again.');
+      return
+    }
+
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
 
