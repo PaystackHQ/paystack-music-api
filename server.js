@@ -129,7 +129,7 @@ app.post('/trigger', async function (req, res) {
       await spotify.setPlaylistCover(playlist.id, newCoverImage);
 
       // send playlist to slack
-      await slack.sendMessage(playlist.external_urls.spotify, process.env.SLACK_CHANNEL);
+      await slack.sendMessage(playlist.external_urls.spotify);
       await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
 
       // finish
