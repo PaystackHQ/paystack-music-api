@@ -14,7 +14,7 @@ module.exports = {
     const startTime = month.startOf('month').format('X.SSSSSS');
     const endTime = month.endOf('month').format('X.SSSSSS');
     
-    let url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_CHANNEL}&oldest=${startTime}&latest=${endTime}&inclusive=true&pretty=1`;
+    let url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_SOURCE_CHANNEL}&oldest=${startTime}&latest=${endTime}&inclusive=true&pretty=1`;
     
     // point the slack api to the new batch we want to fetch
     if (cursor) {
@@ -96,9 +96,8 @@ module.exports = {
     };
   },
 
-  sendMessage(message) {
+  sendMessage(message, channel = SLACK_TARGET_CHANNEL) {
     const url = 'https://slack.com/api/chat.postMessage';
-    const channel = process.env.SLACK_DM_ONYEKACHI;
     const headers = {
       Authorization: `Bearer ${process.env.SLACK_TOKEN}`,
       'Content-Type': 'application/json'
