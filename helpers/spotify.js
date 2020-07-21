@@ -95,5 +95,34 @@ module.exports = {
     };
     return axios.put(url, image, { headers })
       .then(response => response.data);
-  }
+  }, 
+
+  /**
+   * @description returns the features for a single track
+   * @param {String} tracks A single track URL (string)
+   * @returns {Promise<Object>} The audio features for a track
+   */
+  getAudioFeaturesForTrack(trackID) {
+    return spotifyApi.getAudioFeaturesForTrack(trackID)
+      .then(response => response.body);
+  },
+  /**
+   * @description confirms that a URL is a Spotify URL
+   * @param {String} trackURL the URL to be checked
+   * @returns {Boolean}
+   */
+  isSpotifyTrack(trackURL) {
+    let [, , , mediaType, id] = trackURL.split('/');
+    return id && mediaType === 'track';
+  },
+  /**
+   * @description gets the ID from a Spotify URL
+   * @param {*} trackURL a valid Spotify URL
+   * @returns {Number} The Spotify Track ID
+   */
+  getSpotifyIdFromURL(trackURL) {
+    let [, , , , id] = trackURL.split('/');
+    ([ id ] = id.split('?'));
+    return id;
+  },
 };
