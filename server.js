@@ -8,6 +8,7 @@ const moment = require('moment');
 const app = express();
 const path = require('path');
 const dotenv = require('dotenv');
+const db = require('./db');
 dotenv.config();
 
 const slack = require('./helpers/slack');
