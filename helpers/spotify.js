@@ -102,7 +102,7 @@ module.exports = {
    * @param {String} tracks A single track URL (string)
    * @returns {Promise<Object>} The audio features for a track
    */
-  getTrackFeatures(trackID) {
+  getAudioFeaturesForTrack(trackID) {
     return spotifyApi.getAudioFeaturesForTrack(trackID)
       .then(response => response.body);
   },
@@ -111,7 +111,7 @@ module.exports = {
    * @param {String} trackURL the URL to be checked
    * @returns {Boolean}
    */
-  isSpotifyTrack (trackURL) {
+  isSpotifyTrack(trackURL) {
     let [, , , mediaType, id] = trackURL.split('/');
     return id && mediaType === 'track';
   },
@@ -120,7 +120,7 @@ module.exports = {
    * @param {*} trackURL a valid Spotify URL
    * @returns {Number} The Spotify Track ID
    */
-  getSpotifyId (trackURL) {
+  getSpotifyIdFromURL(trackURL) {
     let [, , , , id] = trackURL.split('/');
     ([ id ] = id.split('?'));
     return id;

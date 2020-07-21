@@ -61,7 +61,7 @@ module.exports = {
   filterSpotifyTracks(spotifyMessages) {
     const spotifyTracks = spotifyMessages.filter(message => spotify.isSpotifyTrack(message.link));
     return spotifyTracks.reduce((acc, msg) => {
-      return [...acc, { ...msg, id: spotify.getSpotifyId(msg.link) } ];
+      return [...acc, { ...msg, id: spotify.getSpotifyIdFromURL(msg.link) } ];
     }, [])
   },
 

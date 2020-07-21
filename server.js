@@ -149,7 +149,7 @@ app.get('/covers', function (req, res) {
   res.sendFile(path.join(__dirname+'/views/covers.html'));
 });
 
-app.get('/track-features', async (req, res) => {
+app.get('/track/audio-features', async (req, res) => {
   try {
     const { spotify_link: spotifyLink } = req.query;
     if (!spotifyLink) {
@@ -165,8 +165,8 @@ app.get('/track-features', async (req, res) => {
       });
     }
     prepareSpotifyAuth();
-    const spotifyID = spotify.getSpotifyId(spotifyLink);
-    const trackFeatures = await spotify.getTrackFeatures(spotifyID);
+    const spotifyID = spotify.getSpotifyIdFromURL(spotifyLink);
+    const trackFeatures = await spotify.getAudioFeaturesForTrack(spotifyID);
     return res.status(200).send({
       status: true,
       data: trackFeatures,
