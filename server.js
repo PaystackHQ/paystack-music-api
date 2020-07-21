@@ -110,7 +110,6 @@ app.post('/trigger', async function (req, res) {
           let batch = trackURIs.slice(i,i + batchSize);
           await spotify.addTracksToPlaylist(playlist.id, batch);
       }
-      
       // get playlist cover art
       playlist = await spotify.getPlaylist(playlist.id);
       const coverImageUrl = playlist.images[0].url;
@@ -149,6 +148,50 @@ app.post('/trigger', async function (req, res) {
 app.get('/covers', function (req, res) {
   res.sendFile(path.join(__dirname+'/views/covers.html'));
 });
+
+app.get('/track-features', async (req, res) => {
+  try {
+    const { spotify_link: spotifyLink } = req.query;
+    if (!spotifyLink) {
+      return res.status(400).send({
+        status: false,
+        message: '"spotify_link" is required',
+      });
+    }
+    if (!spotify.isSpotifyTrack(spotifyLink)) {
+      return res.status(400).send({
+        status: false,
+        message: 'Spotify link is invalid',
+      });
+    }
+    prepareSpotifyAuth();
+    const spotifyID = spotify.getSpotifyId(spotifyLink);
+    const trackFeatures = await spotify.getTrackFeatures(spotifyID);
+    return res.status(200).send({
+      status: true,
+      data: trackFeatures,
+    });
+  } catch (err) {
+    return res.status(500).send({ message: 'An error occurred' });
+  }
+});
+
+const prepareSpotifyAuth = async () => {
+  const tokens = spotify.getTokensFromDB();
+  if (!tokens.refreshToken) {
+    return { status: false, code: 401, message: 'No valid tokens' };
+  }
+  const oneHour = 1000 * 60 * 60; 
+  const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
+  spotify.setTokensOnAPIObject(tokens);
+
+   // refresh access token if old one has expired
+   if (!isTokenValid) {
+    const accessToken = await spotify.refreshAccessTokenFromAPI(); 
+    spotify.setAccessTokenInDB(accessToken);
+    spotify.setAccessTokenOnAPIObject(accessToken);
+  }
+}
 
 app.post('/webhook', function (req, res) {
   

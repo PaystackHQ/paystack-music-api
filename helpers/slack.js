@@ -1,4 +1,5 @@
 const axios = require('axios');
+const spotify = require('./spotify');
 
 module.exports = {
   /**
@@ -58,20 +59,10 @@ module.exports = {
   },
 
   filterSpotifyTracks(spotifyMessages) {
-    const tracks = [];
-    spotifyMessages.forEach(msg => {
-      const urlSplit = msg.link.split('/');
-      if (urlSplit[3] === 'track') {
-        tracks.push({
-          ...msg,
-          id: urlSplit[4],
-        });
-      }
-    });
-    return tracks.map(track => ({
-      ...track,
-      id: track.id.split('?')[0]
-    }));
+    const spotifyTracks = spotifyMessages.filter(message => spotify.isSpotifyTrack(message.link));
+    return spotifyTracks.reduce((acc, msg) => {
+      return [...acc, { ...msg, id: spotify.getSpotifyId(msg.link) } ];
+    }, [])
   },
 
   createPlaylist(token, name, description) {
@@ -96,7 +87,7 @@ module.exports = {
     };
   },
 
-  sendMessage(message, channel = SLACK_TARGET_CHANNEL) {
+  sendMessage(message, channel = process.env.SLACK_TARGET_CHANNEL) {
     const url = 'https://slack.com/api/chat.postMessage';
     const headers = {
       Authorization: `Bearer ${process.env.SLACK_TOKEN}`,
