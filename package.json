@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon --ignore 'db.json'"
+    "dev": "nodemon --ignore 'db.json'",
+    "lint": "eslint ./",
+    "lint-fix": "npm run lint -- --fix"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -36,6 +38,22 @@
     "music"
   ],
   "devDependencies": {
+    "eslint": "^7.5.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
     "nodemon": "^1.19.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "node --check",
+      "eslint"
+    ]
   }
 }
