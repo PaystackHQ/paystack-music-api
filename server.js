@@ -21,7 +21,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.get('/', async function (req, res) {
-  res.send("Welcome to Paystack Music!");
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head></head>
+      <body>
+        <h1>Welcome to Paystack Music!</h1>
+        <p>Visit <a href="/authorize">/authorize</a> to get started if you're not logged in already</p>
+      </body>
+    </html>
+  `;
+  res.send(html);
 });
 
 app.get('/authorize', async function (req, res) {
@@ -32,7 +42,7 @@ app.get('/authorize', async function (req, res) {
       <head></head>
       <body>
         <h1>Hello!</h1>
-        <p>Please make sure you're logged into Paystack's Community Spotify</p>
+        <p>Please make sure you're logged into Spotify</p>
         <a target="_blank" href="${authURL}">Click here to authorize</a>
       </body>
     </html>
@@ -54,7 +64,9 @@ app.get('/callback', async function (req, res) {
         <head></head>
         <body>
           <h1>All done!</h1>
-          <a target="_blank" href="${process.env.APP_TRIGGER_URI}">Click here to trigger everything</a>
+          <p>Send a POST request to <a target="_blank" href="#">${process.env.APP_TRIGGER_URI}</a> with the parameters { year (yyyy), month (mm), day (dd) } to generate a playlist.</p>
+          </br>
+          <p>NB: Playlists are generated for the month <b>before</b> the date specified in your request params</p>
         </body>
       </html>
     `;
