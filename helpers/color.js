@@ -3,12 +3,12 @@ const colorContrast = require('color-contrast');
 
 module.exports = {
   hex(x) {
-    const hexDigits = new Array("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f");
-    return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16];
+    const hexDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+    return Number.isNaN(Number(x)) ? '00' : hexDigits[(x - (x % 16)) / 16] + hexDigits[x % 16];
   },
 
   rgb2hex(rgb) {
-    return "#" + this.hex(rgb[0]) + this.hex(rgb[1]) + this.hex(rgb[2]);
+    return `#${this.hex(rgb[0])}${this.hex(rgb[1])}${this.hex(rgb[2])}`;
   },
 
   async getBackgroundColorFromImage(image) {
@@ -17,17 +17,17 @@ module.exports = {
     const dominantHex = this.rgb2hex(dominant);
     if (colorContrast(dominantHex, '#fff') >= ratio) {
       return dominantHex;
-    } else {
-      const palette = await colorThief.getPalette(image);
-      const paletteHex = palette.map(color => this.rgb2hex(color));
-      for (let i = 0; i < paletteHex.length; i++) {
-        const currentColor = paletteHex[i];
-        if (colorContrast(currentColor, '#fff') >= ratio) {
-          return currentColor;
-        }
+    }
+    const palette = await colorThief.getPalette(image);
+    const paletteHex = palette.map((color) => this.rgb2hex(color));
+    for (let i = 0; i < paletteHex.length; i += 1) {
+      const currentColor = paletteHex[i];
+      if (colorContrast(currentColor, '#fff') >= ratio) {
+        return currentColor;
       }
     }
+
     // if all else fails
     return '#011B33';
-  }
-}
+  },
+};
