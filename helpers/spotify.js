@@ -1,21 +1,21 @@
 const SpotifyWebApi = require('spotify-web-api-node');
-const low = require('lowdb')
+const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const axios = require('axios');
 
-const adapter = new FileSync('db.json')
+const adapter = new FileSync('db.json');
 const db = low(adapter);
 
 db.defaults({
   accessToken: null,
   refreshToken: null,
-  timestamp: null
-}).write()
+  timestamp: null,
+}).write();
 
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI
+  redirectUri: process.env.SPOTIFY_REDIRECT_URI,
 });
 
 const scopes = ['playlist-modify-public', 'ugc-image-upload'];
@@ -27,13 +27,11 @@ module.exports = {
 
   async getTokensFromAPI(code) {
     return spotifyApi.authorizationCodeGrant(code)
-      .then(response => {
-        return {
-          timestamp: Date.now(),
-          accessToken: response.body['access_token'],
-          refreshToken: response.body['refresh_token'],
-        }
-      });
+      .then((response) => ({
+        timestamp: Date.now(),
+        accessToken: response.body.access_token,
+        refreshToken: response.body.refresh_token,
+      }));
   },
 
   getTokensFromDB() {
@@ -43,8 +41,8 @@ module.exports = {
     return {
       timestamp,
       accessToken,
-      refreshToken
-    }
+      refreshToken,
+    };
   },
 
   setTokensInDB(params) {
@@ -69,13 +67,13 @@ module.exports = {
 
   refreshAccessTokenFromAPI() {
     return spotifyApi.refreshAccessToken()
-      .then(response => response.body['access_token']);
+      .then((response) => response.body.access_token);
   },
 
   createPlaylist(name) {
     const userId = process.env.SPOTIFY_USER_ID;
-    return spotifyApi.createPlaylist(userId, name, { 'public': true })
-      .then(response => response.body);
+    return spotifyApi.createPlaylist(userId, name, { public: true })
+      .then((response) => response.body);
   },
 
   addTracksToPlaylist(id, tracks) {
@@ -84,18 +82,18 @@ module.exports = {
 
   getPlaylist(id) {
     return spotifyApi.getPlaylist(id)
-      .then(response => response.body);
+      .then((response) => response.body);
   },
 
-  setPlaylistCover (id, image) {
+  setPlaylistCover(id, image) {
     const url = `https://api.spotify.com/v1/playlists/${id}/images`;
     const headers = {
       Authorization: `Bearer ${db.get('accessToken').value()}`,
-      "Content-Type": "image/jpeg",
+      'Content-Type': 'image/jpeg',
     };
     return axios.put(url, image, { headers })
-      .then(response => response.data);
-  }, 
+      .then((response) => response.data);
+  },
 
   /**
    * @description returns the features for a single track
@@ -104,7 +102,7 @@ module.exports = {
    */
   getAudioFeaturesForTrack(trackID) {
     return spotifyApi.getAudioFeaturesForTrack(trackID)
-      .then(response => response.body);
+      .then((response) => response.body);
   },
   /**
    * @description confirms that a URL is a Spotify URL
@@ -112,7 +110,7 @@ module.exports = {
    * @returns {Boolean}
    */
   isSpotifyTrack(trackURL) {
-    let [, , , mediaType, id] = trackURL.split('/');
+    const [, , , mediaType, id] = trackURL.split('/');
     return id && mediaType === 'track';
   },
   /**
@@ -122,7 +120,7 @@ module.exports = {
    */
   getSpotifyIdFromURL(trackURL) {
     let [, , , , id] = trackURL.split('/');
-    ([ id ] = id.split('?'));
+    ([id] = id.split('?'));
     return id;
   },
 };

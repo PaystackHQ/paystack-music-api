@@ -5,10 +5,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
+
 const app = express();
 const path = require('path');
 const dotenv = require('dotenv');
+// eslint-disable-next-line no-unused-vars
 const db = require('./db');
+
 dotenv.config();
 
 const slack = require('./helpers/slack');
@@ -16,11 +19,29 @@ const spotify = require('./helpers/spotify');
 const color = require('./helpers/color');
 const image = require('./helpers/image');
 
-app.use("/public", express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/', async function (req, res) {
+const prepareSpotifyAuth = async () => {
+  const tokens = spotify.getTokensFromDB();
+  if (!tokens.refreshToken) {
+    return { status: false, code: 401, message: 'No valid tokens' };
+  }
+  const oneHour = 1000 * 60 * 60;
+  const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
+  spotify.setTokensOnAPIObject(tokens);
+
+  // refresh access token if old one has expired
+  if (!isTokenValid) {
+    const accessToken = await spotify.refreshAccessTokenFromAPI();
+    spotify.setAccessTokenInDB(accessToken);
+    spotify.setAccessTokenOnAPIObject(accessToken);
+  }
+  return null;
+};
+
+app.get('/', async (req, res) => {
   const html = `
     <!DOCTYPE html>
     <html>
@@ -34,7 +55,7 @@ app.get('/', async function (req, res) {
   res.send(html);
 });
 
-app.get('/authorize', async function (req, res) {
+app.get('/authorize', async (req, res) => {
   const authURL = spotify.createAuthURL();
   const html = `
     <!DOCTYPE html>
@@ -50,9 +71,9 @@ app.get('/authorize', async function (req, res) {
   res.send(html);
 });
 
-app.get('/callback', async function (req, res) {
+app.get('/callback', async (req, res) => {
   try {
-    const code = req.query.code;
+    const { code } = req.query;
     const response = await spotify.getTokensFromAPI(code);
 
     spotify.setTokensInDB(response);
@@ -76,21 +97,21 @@ app.get('/callback', async function (req, res) {
   }
 });
 
-app.post('/trigger', async function (req, res) {
+app.post('/trigger', async (req, res) => {
   try {
     const dateYear = req.body.year;
     const dateMonth = Number(req.body.month) < 10 ? `0${Number(req.body.month)}` : req.body.month;
     const dateDay = Number(req.body.day) < 10 ? `0${Number(req.body.day)}` : req.body.day;
-    
+
     const date = `${dateYear}-${dateMonth}-${dateDay}`;
     const playlistMonth = moment(date).subtract(1, 'months');
     const playlistName = playlistMonth.format('MMMM YYYY');
 
     const history = await slack.fetchChannelHistory(playlistMonth);
-    
+
     if (!history.messages) {
       res.send('Could not find any messages. Please check the channel and try again.');
-      return
+      return;
     }
 
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
@@ -100,28 +121,29 @@ app.post('/trigger', async function (req, res) {
 
     // check if there are valid tokens in our DB
     if (tokens.refreshToken) {
-      const oneHour = 1000 * 60 * 60; 
+      const oneHour = 1000 * 60 * 60;
       const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
       spotify.setTokensOnAPIObject(tokens);
 
-       // refresh access token if old one has expired
+      // refresh access token if old one has expired
       if (!isTokenValid) {
-        const accessToken = await spotify.refreshAccessTokenFromAPI(); 
+        const accessToken = await spotify.refreshAccessTokenFromAPI();
         spotify.setAccessTokenInDB(accessToken);
         spotify.setAccessTokenOnAPIObject(accessToken);
       }
-     
+
       // create new playlist
       let playlist = await spotify.createPlaylist(playlistName);
 
       // and songs to playlist
-      const trackURIs = tracks.map(track => `spotify:track:${track.id}`);
-      
-      // upload in batches of 99 
+      const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
+
+      // upload in batches of 99
       const batchSize = 99;
       for (let i = 0; i < trackURIs.length; i += batchSize) {
-          let batch = trackURIs.slice(i,i + batchSize);
-          await spotify.addTracksToPlaylist(playlist.id, batch);
+        const batch = trackURIs.slice(i, i + batchSize);
+        // eslint-disable-next-line no-await-in-loop
+        await spotify.addTracksToPlaylist(playlist.id, batch);
       }
       // get playlist cover art
       playlist = await spotify.getPlaylist(playlist.id);
@@ -129,12 +151,12 @@ app.post('/trigger', async function (req, res) {
 
       // pick color from current cover art
       const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
-      
+
       // create new cover art
       const newCoverImage = await image.generateCoverImage({
         color: dominantColor,
         month: playlistMonth.format('MMMM'),
-        year: playlistMonth.format('YYYY')
+        year: playlistMonth.format('YYYY'),
       });
 
       // attach album art to playlist
@@ -149,7 +171,7 @@ app.post('/trigger', async function (req, res) {
     } else {
       await slack.sendMessage("I couldn't authorize and create this month's playlist");
       res.send('Omo, there were no tokens there o. Try authorizing <a href="/authorize">here</a> first.');
-    } 
+    }
   } catch (error) {
     const e = { message: error.message, stack: error.stack };
     await slack.sendMessage(JSON.stringify(e));
@@ -158,8 +180,8 @@ app.post('/trigger', async function (req, res) {
   }
 });
 
-app.get('/covers', function (req, res) {
-  res.sendFile(path.join(__dirname+'/views/covers.html'));
+app.get('/covers', (req, res) => {
+  res.sendFile(path.join(`${__dirname}/views/covers.html`));
 });
 
 app.get('/track/audio-features', async (req, res) => {
@@ -177,7 +199,7 @@ app.get('/track/audio-features', async (req, res) => {
         message: 'Spotify link is invalid',
       });
     }
-    prepareSpotifyAuth();
+    await prepareSpotifyAuth();
     const spotifyID = spotify.getSpotifyIdFromURL(spotifyLink);
     const trackFeatures = await spotify.getAudioFeaturesForTrack(spotifyID);
     return res.status(200).send({
@@ -189,29 +211,12 @@ app.get('/track/audio-features', async (req, res) => {
   }
 });
 
-const prepareSpotifyAuth = async () => {
-  const tokens = spotify.getTokensFromDB();
-  if (!tokens.refreshToken) {
-    return { status: false, code: 401, message: 'No valid tokens' };
-  }
-  const oneHour = 1000 * 60 * 60; 
-  const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
-  spotify.setTokensOnAPIObject(tokens);
+// eslint-disable-next-line no-unused-vars
+app.post('/webhook', (req, res) => {
 
-   // refresh access token if old one has expired
-   if (!isTokenValid) {
-    const accessToken = await spotify.refreshAccessTokenFromAPI(); 
-    spotify.setAccessTokenInDB(accessToken);
-    spotify.setAccessTokenOnAPIObject(accessToken);
-  }
-}
-
-app.post('/webhook', function (req, res) {
-  
 });
 
-
 // listen for requests :)
-const listener = app.listen(process.env.PORT, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
+const listener = app.listen(process.env.PORT, () => {
+  console.log(`Your app is listening on port ${listener.address().port}`);
 });
