@@ -22,9 +22,6 @@
     "puppeteer": "^1.20.0",
     "spotify-web-api-node": "^4.0.0"
   },
-  "engines": {
-    "node": "8.x"
-  },
   "repository": {
     "url": "https://glitch.com/edit/#!/hello-express"
   },
