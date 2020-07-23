@@ -1,16 +1,7 @@
 const SpotifyWebApi = require('spotify-web-api-node');
-const low = require('lowdb');
-const FileSync = require('lowdb/adapters/FileSync');
 const axios = require('axios');
-
-const adapter = new FileSync('db.json');
-const db = low(adapter);
-
-db.defaults({
-  accessToken: null,
-  refreshToken: null,
-  timestamp: null,
-}).write();
+const moment = require('moment');
+const Authentication = require('../models/authentication');
 
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -19,41 +10,58 @@ const spotifyApi = new SpotifyWebApi({
 });
 
 const scopes = ['playlist-modify-public', 'ugc-image-upload'];
+const TOKEN_DURATION_IN_HOURS = 1;
 
-module.exports = {
+const spotify = {
   createAuthURL() {
     return spotifyApi.createAuthorizeURL(scopes);
+  },
+
+  getAuthTokens: async (code = '') => {
+    const authToken = await Authentication.findOne({}, {}, { sort: { expires_at: -1 } });
+    let accessToken = authToken ? authToken.access_token : '';
+
+    if (!authToken && code) {
+      const newCredentials = await spotify.getTokensFromAPI(code);
+      await spotify.saveTokensToDB(newCredentials);
+      spotify.setTokensOnAPIObject(newCredentials);
+      return newCredentials;
+    }
+
+    if (moment.utc().diff(moment(authToken.expires_at), 'hours') >= 1) {
+      accessToken = await spotify.refreshAccessTokenFromAPI();
+      await spotify.saveTokensToDB({ accessToken, refreshToken: authToken.refresh_token });
+      spotify.setAccessTokenOnAPIObject(accessToken);
+    }
+
+    const tokens = {
+      accessToken: authToken.access_token,
+      refreshToken: authToken.refresh_token,
+    };
+    spotify.setTokensOnAPIObject(tokens);
+    return tokens;
   },
 
   async getTokensFromAPI(code) {
     return spotifyApi.authorizationCodeGrant(code)
       .then((response) => ({
-        timestamp: Date.now(),
         accessToken: response.body.access_token,
         refreshToken: response.body.refresh_token,
       }));
   },
 
-  getTokensFromDB() {
-    const accessToken = db.get('accessToken').value();
-    const refreshToken = db.get('refreshToken').value();
-    const timestamp = db.get('timestamp').value();
-    return {
-      timestamp,
-      accessToken,
-      refreshToken,
-    };
-  },
-
-  setTokensInDB(params) {
-    db.set('accessToken', params.accessToken).write();
-    db.set('refreshToken', params.refreshToken).write();
-    db.set('timestamp', params.timestamp).write();
-  },
-
-  setAccessTokenInDB(token) {
-    db.set('accessToken', token).write();
-    db.set('timestamp', Date.now()).write();
+  saveTokensToDB: async (params) => {
+    try {
+      const newAuth = new Authentication({
+        access_token: params.accessToken,
+        refresh_token: params.refreshToken,
+        created_at: moment.utc().format(),
+        expires_at: moment.utc().add(TOKEN_DURATION_IN_HOURS, 'hour').format(),
+      });
+      await newAuth.save();
+    } catch (error) {
+      console.log('something went wrong saving auth data');
+    }
   },
 
   setTokensOnAPIObject(params) {
@@ -85,10 +93,11 @@ module.exports = {
       .then((response) => response.body);
   },
 
-  setPlaylistCover(id, image) {
+  setPlaylistCover: async (id, image) => {
+    const { accessToken } = await spotify.getAuthTokens();
     const url = `https://api.spotify.com/v1/playlists/${id}/images`;
     const headers = {
-      Authorization: `Bearer ${db.get('accessToken').value()}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'image/jpeg',
     };
     return axios.put(url, image, { headers })
@@ -124,3 +133,5 @@ module.exports = {
     return id;
   },
 };
+
+module.exports = spotify;

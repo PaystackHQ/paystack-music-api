@@ -24,20 +24,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 const prepareSpotifyAuth = async () => {
-  const tokens = spotify.getTokensFromDB();
-  if (!tokens.refreshToken) {
-    return { status: false, code: 401, message: 'No valid tokens' };
-  }
-  const oneHour = 1000 * 60 * 60;
-  const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
-  spotify.setTokensOnAPIObject(tokens);
+  const { refreshToken } = await spotify.getTokensFromDB();
+  if (!refreshToken) return { status: false, code: 401, message: 'No valid tokens' };
 
-  // refresh access token if old one has expired
-  if (!isTokenValid) {
-    const accessToken = await spotify.refreshAccessTokenFromAPI();
-    spotify.setAccessTokenInDB(accessToken);
-    spotify.setAccessTokenOnAPIObject(accessToken);
-  }
   return null;
 };
 
@@ -74,10 +63,7 @@ app.get('/authorize', async (req, res) => {
 app.get('/callback', async (req, res) => {
   try {
     const { code } = req.query;
-    const response = await spotify.getTokensFromAPI(code);
-
-    spotify.setTokensInDB(response);
-    spotify.setTokensOnAPIObject(response);
+    await spotify.getAuthTokens(code);
 
     const html = `
       <!DOCTYPE html>
@@ -99,6 +85,12 @@ app.get('/callback', async (req, res) => {
 
 app.post('/trigger', async (req, res) => {
   try {
+    const { refreshToken } = await spotify.getAuthTokens();
+    if (!refreshToken) {
+      await slack.sendMessage("I couldn't authorize and create this month's playlist");
+      res.send('Omo, there were no tokens there o. Try authorizing <a href="/authorize">here</a> first.');
+    }
+
     const dateYear = req.body.year;
     const dateMonth = Number(req.body.month) < 10 ? `0${Number(req.body.month)}` : req.body.month;
     const dateDay = Number(req.body.day) < 10 ? `0${Number(req.body.day)}` : req.body.day;
@@ -117,65 +109,45 @@ app.post('/trigger', async (req, res) => {
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
 
-    const tokens = spotify.getTokensFromDB();
+    // create new playlist
+    let playlist = await spotify.createPlaylist(playlistName);
 
-    // check if there are valid tokens in our DB
-    if (tokens.refreshToken) {
-      const oneHour = 1000 * 60 * 60;
-      const isTokenValid = (Date.now() - tokens.timestamp) < oneHour;
-      spotify.setTokensOnAPIObject(tokens);
+    // and songs to playlist
+    const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
 
-      // refresh access token if old one has expired
-      if (!isTokenValid) {
-        const accessToken = await spotify.refreshAccessTokenFromAPI();
-        spotify.setAccessTokenInDB(accessToken);
-        spotify.setAccessTokenOnAPIObject(accessToken);
-      }
-
-      // create new playlist
-      let playlist = await spotify.createPlaylist(playlistName);
-
-      // and songs to playlist
-      const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
-
-      // upload in batches of 99
-      const batchSize = 99;
-      for (let i = 0; i < trackURIs.length; i += batchSize) {
-        const batch = trackURIs.slice(i, i + batchSize);
-        // eslint-disable-next-line no-await-in-loop
-        await spotify.addTracksToPlaylist(playlist.id, batch);
-      }
-      // get playlist cover art
-      playlist = await spotify.getPlaylist(playlist.id);
-      const coverImageUrl = playlist.images[0].url;
-
-      // pick color from current cover art
-      const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
-
-      // create new cover art
-      const newCoverImage = await image.generateCoverImage({
-        color: dominantColor,
-        month: playlistMonth.format('MMMM'),
-        year: playlistMonth.format('YYYY'),
-      });
-
-      // attach album art to playlist
-      await spotify.setPlaylistCover(playlist.id, newCoverImage);
-
-      // send playlist to slack
-      await slack.sendMessage(playlist.external_urls.spotify);
-      await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
-
-      // finish
-      res.send(`${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`);
-    } else {
-      await slack.sendMessage("I couldn't authorize and create this month's playlist");
-      res.send('Omo, there were no tokens there o. Try authorizing <a href="/authorize">here</a> first.');
+    // upload in batches of 99
+    const batchSize = 99;
+    for (let i = 0; i < trackURIs.length; i += batchSize) {
+      const batch = trackURIs.slice(i, i + batchSize);
+      // eslint-disable-next-line no-await-in-loop
+      await spotify.addTracksToPlaylist(playlist.id, batch);
     }
+    // get playlist cover art
+    playlist = await spotify.getPlaylist(playlist.id);
+    const coverImageUrl = playlist.images[0].url;
+
+    // pick color from current cover art
+    const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
+
+    // create new cover art
+    const newCoverImage = await image.generateCoverImage({
+      color: dominantColor,
+      month: playlistMonth.format('MMMM'),
+      year: playlistMonth.format('YYYY'),
+    });
+
+    // attach album art to playlist
+    await spotify.setPlaylistCover(playlist.id, newCoverImage);
+
+    // send playlist to slack
+    await slack.sendMessage(playlist.external_urls.spotify);
+    await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
+
+    // finish
+    res.send(`${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`);
   } catch (error) {
     const e = { message: error.message, stack: error.stack };
     await slack.sendMessage(JSON.stringify(e));
-    console.log(error);
     res.send(JSON.stringify(e));
   }
 });
