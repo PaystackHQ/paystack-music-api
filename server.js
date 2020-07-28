@@ -23,13 +23,6 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-const prepareSpotifyAuth = async () => {
-  const { refreshToken } = await spotify.getTokensFromDB();
-  if (!refreshToken) return { status: false, code: 401, message: 'No valid tokens' };
-
-  return null;
-};
-
 app.get('/', async (req, res) => {
   const html = `
     <!DOCTYPE html>
@@ -63,7 +56,7 @@ app.get('/authorize', async (req, res) => {
 app.get('/callback', async (req, res) => {
   try {
     const { code } = req.query;
-    await spotify.getAuthTokens(code);
+    await spotify.performAuthentication(code);
 
     const html = `
       <!DOCTYPE html>
@@ -85,11 +78,7 @@ app.get('/callback', async (req, res) => {
 
 app.post('/trigger', async (req, res) => {
   try {
-    const { refreshToken } = await spotify.getAuthTokens();
-    if (!refreshToken) {
-      await slack.sendMessage("I couldn't authorize and create this month's playlist");
-      res.send('Omo, there were no tokens there o. Try authorizing <a href="/authorize">here</a> first.');
-    }
+    await spotify.performAuthentication();
 
     const dateYear = req.body.year;
     const dateMonth = Number(req.body.month) < 10 ? `0${Number(req.body.month)}` : req.body.month;
@@ -171,7 +160,8 @@ app.get('/track/audio-features', async (req, res) => {
         message: 'Spotify link is invalid',
       });
     }
-    await prepareSpotifyAuth();
+
+    await spotify.performAuthentication();
     const spotifyID = spotify.getSpotifyIdFromURL(spotifyLink);
     const trackFeatures = await spotify.getAudioFeaturesForTrack(spotifyID);
     return res.status(200).send({
