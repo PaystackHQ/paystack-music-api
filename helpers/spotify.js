@@ -5,6 +5,9 @@ const cryptoJS = require('crypto-js');
 const { chunkArray } = require('./util');
 
 const Authentication = require('../models/authentication');
+const Playlist = require('../models/playlist');
+const Track = require('../models/track');
+const Contributor = require('../models/contributor');
 
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -177,6 +180,35 @@ async function getTrackData(trackIds) {
   }));
 }
 
+const savePlaylist = async (playlistData, contributors) => {
+  // eslint-disable-next-line no-underscore-dangle
+  const contributorIds = contributors.map((c) => c._id);
+  const playlist = await Playlist.create({
+    name: playlistData.name,
+    description: playlistData.description,
+    url: playlistData.external_urls.spotify,
+    spotifyId: playlistData.id,
+    contributors: contributorIds,
+  });
+  return playlist.id;
+};
+
+const saveTracks = (tracksData, playlistId) => {
+  tracksData.forEach(async (track) => {
+    const contributors = await Contributor.find({ slackId: { $in: track.users } });
+    // eslint-disable-next-line no-underscore-dangle
+    const contributorIds = contributors.map((c) => c._id);
+    await Track.create({
+      service: track.service,
+      title: track.title,
+      url: track.link,
+      trackId: track.id,
+      contributors: contributorIds,
+      playlist: playlistId,
+    });
+  });
+};
+
 module.exports = {
   createAuthURL,
   performAuthentication,
@@ -188,4 +220,6 @@ module.exports = {
   isSpotifyTrack,
   getSpotifyIdFromURL,
   getTrackData,
+  savePlaylist,
+  saveTracks,
 };
