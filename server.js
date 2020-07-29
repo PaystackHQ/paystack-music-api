@@ -173,30 +173,22 @@ app.get('/track/audio-features', async (req, res) => {
   }
 });
 
-app.get('/track/data', async (req, res) => {
+app.post('/track/data', async (req, res) => {
   try {
-    const { links } = req.query;
-    if (!links) {
+    const { ids } = req.body;
+    if (!ids && !Array.isArray(ids)) {
       return res.status(400).send({
         status: false,
-        message: '"spotify_links" are required',
+        message: '"ids" is required',
       });
     }
-    const spotifyLinks = links.split(',');
-    const areLinksValid = spotifyLinks.every((link) => spotify.isSpotifyTrack(link));
 
-    if (!areLinksValid) {
-      return res.status(400).send({
-        status: false,
-        message: 'Spotify links provided are invalid',
-      });
-    }
     const result = await prepareSpotifyAuth();
     if (result && result.code === 401) {
       return res.status(401).send({ message: result.message });
     }
-    const spotifyIds = spotifyLinks.map((link) => spotify.getSpotifyIdFromURL(link));
-    const data = await spotify.getTrackData(spotifyIds);
+
+    const data = await spotify.getTrackData(ids);
 
     return res.status(200).send({
       status: true,
