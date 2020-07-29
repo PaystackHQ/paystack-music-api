@@ -2,6 +2,7 @@ const SpotifyWebApi = require('spotify-web-api-node');
 const axios = require('axios');
 const moment = require('moment');
 const cryptoJS = require('crypto-js');
+const { chunkArray } = require('./util');
 
 const Authentication = require('../models/authentication');
 
@@ -144,6 +145,35 @@ const getSpotifyIdFromURL = (trackURL) => {
   return id;
 };
 
+/**
+ * @description returns track data for a single track
+ * @param {Array} trackIds IDs for tracks
+ * @returns {Promise<Object[]>} The track data for multiple tracks
+ */
+async function getTrackData(trackIds) {
+  const trackIdChunks = chunkArray(trackIds, 50);
+  const trackDataArray = [];
+
+  const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getTracks(chunk));
+
+  const responses = await Promise.all(trackDataPromises);
+
+  responses.forEach((response) => {
+    const { tracks } = response.body;
+    Array.prototype.push.apply(trackDataArray, tracks);
+  });
+
+  return trackDataArray.map((track) => ({
+    explicit: track.explicit,
+    duration: track.duration_ms / 1000,
+    url: track.external_urls.spotify,
+    name: track.name,
+    artist_names: track.artists.map((artist) => artist.name),
+    album_covers: track.album.images,
+    id: track.id,
+  }));
+}
+
 module.exports = {
   createAuthURL,
   performAuthentication,
@@ -154,4 +184,5 @@ module.exports = {
   getAudioFeaturesForTrack,
   isSpotifyTrack,
   getSpotifyIdFromURL,
+  getTrackData,
 };
