@@ -183,7 +183,7 @@ app.post('/track/data', async (req, res) => {
       });
     }
 
-    const result = await prepareSpotifyAuth();
+    const result = await spotify.performAuthentication();
     if (result && result.code === 401) {
       return res.status(401).send({ message: result.message });
     }
