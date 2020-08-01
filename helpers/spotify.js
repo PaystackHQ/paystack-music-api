@@ -146,24 +146,27 @@ const getSpotifyIdFromURL = (trackURL) => {
 };
 
 /**
- * @description returns track data for a single track
+ * @description returns track data for tracks
  * @param {Array} trackIds IDs for tracks
  * @returns {Promise<Object[]>} The track data for multiple tracks
  */
 async function getTrackData(trackIds) {
+  const areIdsValid = trackIds.every((id) => !!id);
+  if (!areIdsValid) {
+    throw new Error('Invalid IDs passed');
+  }
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
   const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getTracks(chunk));
 
   const responses = await Promise.all(trackDataPromises);
-
   responses.forEach((response) => {
     const { tracks } = response.body;
     Array.prototype.push.apply(trackDataArray, tracks);
   });
 
-  return trackDataArray.map((track) => ({
+  return trackDataArray.filter((track) => !!track).map((track) => ({
     explicit: track.explicit,
     duration: track.duration_ms / 1000,
     url: track.external_urls.spotify,

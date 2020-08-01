@@ -175,7 +175,7 @@ app.get('/track/audio-features', async (req, res) => {
 
 app.post('/track/data', async (req, res) => {
   try {
-    const { ids } = req.body;
+    const { track_ids: ids } = req.body;
     if (!ids && !Array.isArray(ids)) {
       return res.status(400).send({
         status: false,
