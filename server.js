@@ -179,7 +179,7 @@ app.post('/track/data', async (req, res) => {
     if (!ids && !Array.isArray(ids)) {
       return res.status(400).send({
         status: false,
-        message: '"ids" is required',
+        message: '"track_ids" is required',
       });
     }
 
