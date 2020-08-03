@@ -173,6 +173,32 @@ app.get('/track/audio-features', async (req, res) => {
   }
 });
 
+app.post('/track/data', async (req, res) => {
+  try {
+    const { track_ids: ids } = req.body;
+    if (!ids && !Array.isArray(ids)) {
+      return res.status(400).send({
+        status: false,
+        message: '"track_ids" is required',
+      });
+    }
+
+    const result = await spotify.performAuthentication();
+    if (result && result.code === 401) {
+      return res.status(401).send({ message: result.message });
+    }
+
+    const data = await spotify.getTrackData(ids);
+
+    return res.status(200).send({
+      status: true,
+      data,
+    });
+  } catch (err) {
+    return res.status(500).send({ message: 'An error occurred' });
+  }
+});
+
 // eslint-disable-next-line no-unused-vars
 app.post('/webhook', (req, res) => {
 
