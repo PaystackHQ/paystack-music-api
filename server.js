@@ -101,7 +101,7 @@ app.post('/trigger', async (req, res) => {
     // create new playlist
     let playlist = await spotify.createPlaylist(playlistName);
     const playlistId = await spotify.savePlaylist(playlist, contributors);
-    spotify.saveTracks(tracks, playlistId);
+    await spotify.saveTracks(tracks, playlistId);
 
     // and songs to playlist
     const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
@@ -164,7 +164,7 @@ app.get('/track/audio-features', async (req, res) => {
     }
 
     await spotify.performAuthentication();
-    const spotifyID = spotify.getSpotifyIdFromURL(spotifyLink);
+    const { trackId: spotifyID } = spotify.getSpotifyUrlParts(spotifyLink);
     const trackFeatures = await spotify.getAudioFeaturesForTrack(spotifyID);
     return res.status(200).send({
       status: true,

@@ -138,14 +138,13 @@ const isSpotifyTrack = (trackURL) => {
   return id && mediaType === 'track';
 };
 /**
- * @description gets the ID from a Spotify URL
- * @param {*} trackURL a valid Spotify URL
- * @returns {Number} The Spotify Track ID
+ * @description Get the ID and media type from a Spotify URL.
+ * @param {string} trackUrl A valid Spotify URL.
+ * @returns {object} The Spotify track ID and media type.
  */
-const getSpotifyIdFromURL = (trackURL) => {
-  let [, , , , id] = trackURL.split('/');
-  ([id] = id.split('?'));
-  return id;
+const getSpotifyUrlParts = (trackUrl) => {
+  const [, , , mediaType, trackId] = trackUrl.split('?')[0].split('/');
+  return { mediaType, trackId };
 };
 
 /**
@@ -193,20 +192,21 @@ const savePlaylist = async (playlistData, contributors) => {
   return playlist.id;
 };
 
-const saveTracks = (tracksData, playlistId) => {
-  tracksData.forEach(async (track) => {
+const saveTracks = async (tracksData, playlistId) => {
+  const tracksDocs = await Promise.all(tracksData.map(async (track) => {
     const contributors = await Contributor.find({ slackId: { $in: track.users } });
     // eslint-disable-next-line no-underscore-dangle
     const contributorIds = contributors.map((c) => c._id);
-    await Track.create({
+    return {
       service: track.service,
       title: track.title,
       url: track.link,
       trackId: track.id,
       contributors: contributorIds,
       playlist: playlistId,
-    });
-  });
+    };
+  }));
+  await Track.insertMany(tracksDocs);
 };
 
 module.exports = {
@@ -218,8 +218,8 @@ module.exports = {
   setPlaylistCover,
   getAudioFeaturesForTrack,
   isSpotifyTrack,
-  getSpotifyIdFromURL,
   getTrackData,
+  getSpotifyUrlParts,
   savePlaylist,
   saveTracks,
 };

@@ -1,5 +1,6 @@
 const axios = require('axios');
 const Contributor = require('../models/contributor');
+const spotify = require('./spotify');
 
 module.exports = {
   /**
@@ -67,8 +68,7 @@ module.exports = {
   filterSpotifyTracks(spotifyMessages) {
     const tracks = [];
     spotifyMessages.forEach((message) => {
-      const spotifyLink = message.link; // e.g https://open.spotify.com/track/59JFL0bREpnVYWamU1Dlhm?si=zJpKYlDFR0-0IkZ9TwUp5g
-      const [, , , mediaType, trackId] = spotifyLink.split('?')[0].split('/');
+      const { mediaType, trackId } = spotify.getSpotifyUrlParts(message.link);
       if (mediaType === 'track') {
         if (!tracks.some((t) => t.id === trackId)) {
           tracks.push({
