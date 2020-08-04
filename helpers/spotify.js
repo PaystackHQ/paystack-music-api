@@ -5,6 +5,9 @@ const cryptoJS = require('crypto-js');
 const { chunkArray } = require('./util');
 
 const Authentication = require('../models/authentication');
+const Playlist = require('../models/playlist');
+const Track = require('../models/track');
+const Contributor = require('../models/contributor');
 
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -135,14 +138,13 @@ const isSpotifyTrack = (trackURL) => {
   return id && mediaType === 'track';
 };
 /**
- * @description gets the ID from a Spotify URL
- * @param {*} trackURL a valid Spotify URL
- * @returns {Number} The Spotify Track ID
+ * @description Get the ID and media type from a Spotify URL.
+ * @param {string} trackUrl A valid Spotify URL.
+ * @returns {object} The Spotify track ID and media type.
  */
-const getSpotifyIdFromURL = (trackURL) => {
-  let [, , , , id] = trackURL.split('/');
-  ([id] = id.split('?'));
-  return id;
+const getSpotifyUrlParts = (trackUrl) => {
+  const [, , , mediaType, trackId] = trackUrl.split('?')[0].split('/');
+  return { mediaType, trackId };
 };
 
 /**
@@ -177,6 +179,36 @@ async function getTrackData(trackIds) {
   }));
 }
 
+const savePlaylist = async (playlistData, contributors) => {
+  // eslint-disable-next-line no-underscore-dangle
+  const contributorIds = contributors.map((c) => c._id);
+  const playlist = await Playlist.create({
+    name: playlistData.name,
+    description: playlistData.description,
+    url: playlistData.external_urls.spotify,
+    spotifyId: playlistData.id,
+    contributors: contributorIds,
+  });
+  return playlist.id;
+};
+
+const saveTracks = async (tracksData, playlistId) => {
+  const tracksDocs = await Promise.all(tracksData.map(async (track) => {
+    const contributors = await Contributor.find({ slackId: { $in: track.users } });
+    // eslint-disable-next-line no-underscore-dangle
+    const contributorIds = contributors.map((c) => c._id);
+    return {
+      service: track.service,
+      title: track.title,
+      url: track.link,
+      trackId: track.id,
+      contributors: contributorIds,
+      playlist: playlistId,
+    };
+  }));
+  await Track.insertMany(tracksDocs);
+};
+
 module.exports = {
   createAuthURL,
   performAuthentication,
@@ -186,6 +218,8 @@ module.exports = {
   setPlaylistCover,
   getAudioFeaturesForTrack,
   isSpotifyTrack,
-  getSpotifyIdFromURL,
   getTrackData,
+  getSpotifyUrlParts,
+  savePlaylist,
+  saveTracks,
 };

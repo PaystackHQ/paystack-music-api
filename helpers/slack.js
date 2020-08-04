@@ -1,4 +1,5 @@
 const axios = require('axios');
+const Contributor = require('../models/contributor');
 const spotify = require('./spotify');
 
 module.exports = {
@@ -51,6 +52,7 @@ module.exports = {
               service: attachment.service_name,
               title: attachment.title,
               link: attachment.title_link,
+              user: msg.user,
             });
           }
         });
@@ -59,14 +61,31 @@ module.exports = {
     return spotifyMessages;
   },
 
+  /**
+   * Remove duplicate tracks.
+   * @param {object} spotifyMessages
+   */
   filterSpotifyTracks(spotifyMessages) {
-    const spotifyTracks = spotifyMessages.filter((message) => spotify.isSpotifyTrack(message.link));
-    return spotifyTracks.reduce(
-      (acc, msg) => [...acc, {
-        ...msg,
-        id: spotify.getSpotifyIdFromURL(msg.link),
-      }], [],
-    );
+    const tracks = [];
+    spotifyMessages.forEach((message) => {
+      const { mediaType, trackId } = spotify.getSpotifyUrlParts(message.link);
+      if (mediaType === 'track') {
+        if (!tracks.some((t) => t.id === trackId)) {
+          tracks.push({
+            service: message.service,
+            title: message.title,
+            link: message.link,
+            users: [message.user],
+            id: trackId,
+          });
+        } else {
+          // add multiple contributors to one track
+          const idx = tracks.findIndex((t) => t.id === trackId);
+          if (idx > -1) tracks[idx].users.push(message.user);
+        }
+      }
+    });
+    return tracks;
   },
 
   createPlaylist(token, name, description) {
@@ -105,5 +124,34 @@ module.exports = {
       text: message,
     }, { headers })
       .then((response) => response.data);
+  },
+
+  /**
+   * @param {object} tracksData
+   */
+  async saveContributors(tracksData) {
+    const url = `https://slack.com/api/users.info?token=${process.env.SLACK_TOKEN}&user=`;
+
+    const users = tracksData.reduce((acc, t) => acc.concat(t.users), []);
+    const contributors = await Promise.all(users.map(async (user) => {
+      const data = await axios.get(url + user).then((response) => response.data);
+
+      const contributor = await Contributor.findOneAndUpdate(
+        { slackId: user },
+        {
+          name: data.user.profile.real_name,
+          photoUrl: data.user.profile.image_original,
+          slackId: user,
+        },
+        { new: true, upsert: true },
+      );
+
+      return contributor;
+    }));
+    const uniqueContributors = [
+      ...new Map(contributors.filter((c) => c !== null).map((c) => [c.slackId, c])).values(),
+    ];
+
+    return uniqueContributors;
   },
 };

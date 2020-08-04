@@ -9,8 +9,7 @@ const moment = require('moment');
 const app = express();
 const path = require('path');
 const dotenv = require('dotenv');
-// eslint-disable-next-line no-unused-vars
-const db = require('./db');
+require('./db');
 
 dotenv.config();
 
@@ -90,16 +89,19 @@ app.post('/trigger', async (req, res) => {
 
     const history = await slack.fetchChannelHistory(playlistMonth);
 
-    if (!history.messages) {
+    if (!(history.messages && history.messages.length)) {
       res.send('Could not find any messages. Please check the channel and try again.');
       return;
     }
 
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
+    const contributors = await slack.saveContributors(tracks);
 
     // create new playlist
     let playlist = await spotify.createPlaylist(playlistName);
+    const playlistId = await spotify.savePlaylist(playlist, contributors);
+    await spotify.saveTracks(tracks, playlistId);
 
     // and songs to playlist
     const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
@@ -162,7 +164,7 @@ app.get('/track/audio-features', async (req, res) => {
     }
 
     await spotify.performAuthentication();
-    const spotifyID = spotify.getSpotifyIdFromURL(spotifyLink);
+    const { trackId: spotifyID } = spotify.getSpotifyUrlParts(spotifyLink);
     const trackFeatures = await spotify.getAudioFeaturesForTrack(spotifyID);
     return res.status(200).send({
       status: true,
