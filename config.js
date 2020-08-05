@@ -15,6 +15,7 @@ module.exports = {
     redirectUri: process.env.SPOTIFY_REDIRECT_URI,
     userId: process.env.SPOTIFY_USER_ID,
     tokenSecret: process.env.TOKEN_SECRET,
+    clientToken: process.env.SPOTIFY_CLIENT_TOKEN,
   },
   slack: {
     token: process.env.SLACK_TOKEN,

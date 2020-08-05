@@ -105,7 +105,7 @@ module.exports = {
   },
 
   getSpotifyToken() {
-    const encodedToken = Buffer.from(`${spotifyConfig.clientId}:${process.env.SPOTIFY}`)
+    const encodedToken = Buffer.from(`${spotifyConfig.clientId}:${spotifyConfig.clientToken}`)
       .toString('base64');
     return {
       'Content-Type': 'application/x-www-form-urlencoded',
