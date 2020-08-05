@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon --ignore 'db.json'",
+    "dev": "nodemon",
     "lint": "eslint ./",
     "lint-fix": "npm run lint -- --fix"
   },
