@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { slack: slackConfig, spotify: spotifyConfig } = require('../config');
 const Contributor = require('../models/contributor');
 const spotify = require('./spotify');
 
@@ -16,7 +17,7 @@ module.exports = {
     const endTime = month.endOf('month')
       .format('X.SSSSSS');
 
-    let url = `https://slack.com/api/conversations.history?token=${process.env.SLACK_TOKEN}&channel=${process.env.SLACK_SOURCE_CHANNEL}&oldest=${startTime}&latest=${endTime}&inclusive=true&pretty=1`;
+    let url = `https://slack.com/api/conversations.history?token=${slackConfig.token}&channel=${slackConfig.sourceChannel}&oldest=${startTime}&latest=${endTime}&inclusive=true&pretty=1`;
 
     // point the slack api to the new batch we want to fetch
     if (cursor) {
@@ -91,7 +92,7 @@ module.exports = {
   createPlaylist(token, name, description) {
     const url = 'https://api.spotify.com/v1/playlists';
     const headers = {
-      Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}`,
+      Authorization: `Bearer ${spotifyConfig.token}`,
     };
     return axios.post(url, {
       name,
@@ -104,7 +105,7 @@ module.exports = {
   },
 
   getSpotifyToken() {
-    const encodedToken = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY}`)
+    const encodedToken = Buffer.from(`${spotifyConfig.clientId}:${spotifyConfig.clientToken}`)
       .toString('base64');
     return {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -112,10 +113,10 @@ module.exports = {
     };
   },
 
-  sendMessage(message, channel = process.env.SLACK_TARGET_CHANNEL) {
+  sendMessage(message, channel = slackConfig.targetChannel) {
     const url = 'https://slack.com/api/chat.postMessage';
     const headers = {
-      Authorization: `Bearer ${process.env.SLACK_TOKEN}`,
+      Authorization: `Bearer ${slackConfig.token}`,
       'Content-Type': 'application/json',
     };
 
@@ -130,7 +131,7 @@ module.exports = {
    * @param {object} tracksData
    */
   async saveContributors(tracksData) {
-    const url = `https://slack.com/api/users.info?token=${process.env.SLACK_TOKEN}&user=`;
+    const url = `https://slack.com/api/users.info?token=${slackConfig.token}&user=`;
 
     const users = tracksData.reduce((acc, t) => acc.concat(t.users), []);
     const contributors = await Promise.all(users.map(async (user) => {

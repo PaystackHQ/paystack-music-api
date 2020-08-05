@@ -2,6 +2,7 @@ const SpotifyWebApi = require('spotify-web-api-node');
 const axios = require('axios');
 const moment = require('moment');
 const cryptoJS = require('crypto-js');
+const { spotify: spotifyConfig } = require('../config');
 const { chunkArray } = require('./util');
 
 const Authentication = require('../models/authentication');
@@ -10,14 +11,14 @@ const Track = require('../models/track');
 const Contributor = require('../models/contributor');
 
 const spotifyApi = new SpotifyWebApi({
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+  clientId: spotifyConfig.clientId,
+  clientSecret: spotifyConfig.clientSecret,
+  redirectUri: spotifyConfig.redirectUri,
 });
 
 const scopes = ['playlist-modify-public', 'ugc-image-upload'];
 const TOKEN_DURATION_IN_HOURS = 1;
-const encryptionSecret = process.env.TOKEN_SECRET;
+const encryptionSecret = spotifyConfig.tokenSecret;
 
 const createAuthURL = () => spotifyApi.createAuthorizeURL(scopes);
 
@@ -100,7 +101,7 @@ const performAuthentication = async (code = '') => {
 };
 
 const createPlaylist = (name) => {
-  const userId = process.env.SPOTIFY_USER_ID;
+  const { userId } = spotifyConfig;
   return spotifyApi.createPlaylist(userId, name, { public: true })
     .then((response) => response.body);
 };

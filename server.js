@@ -8,10 +8,8 @@ const moment = require('moment');
 
 const app = express();
 const path = require('path');
-const dotenv = require('dotenv');
+const { app: appConfig } = require('./config');
 require('./db');
-
-dotenv.config();
 
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
@@ -63,7 +61,7 @@ app.get('/callback', async (req, res) => {
         <head></head>
         <body>
           <h1>All done!</h1>
-          <p>Send a POST request to <a target="_blank" href="#">${process.env.APP_TRIGGER_URI}</a> with the parameters { year (yyyy), month (mm), day (dd) } to generate a playlist.</p>
+          <p>Send a POST request to <a target="_blank" href="#">${appConfig.triggerUri}</a> with the parameters { year (yyyy), month (mm), day (dd) } to generate a playlist.</p>
           </br>
           <p>NB: Playlists are generated for the month <b>before</b> the date specified in your request params</p>
         </body>
@@ -207,6 +205,6 @@ app.post('/webhook', (req, res) => {
 });
 
 // listen for requests :)
-const listener = app.listen(process.env.PORT, () => {
+const listener = app.listen(appConfig.port, () => {
   console.log(`Your app is listening on port ${listener.address().port}`);
 });

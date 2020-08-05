@@ -1,11 +1,7 @@
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const { db: { uri: databaseURI } } = require('./config');
 
-dotenv.config();
-
-const url = process.env.DB_URI;
-
-mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(databaseURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const db = mongoose.connection;
 db.on('open', () => {
