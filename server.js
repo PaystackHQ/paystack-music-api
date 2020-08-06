@@ -13,6 +13,8 @@ require('./db');
 
 dotenv.config();
 
+const Playlist = require('./models/playlist');
+
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
 const color = require('./helpers/color');
@@ -84,7 +86,7 @@ app.post('/trigger', async (req, res) => {
     const dateDay = Number(req.body.day) < 10 ? `0${Number(req.body.day)}` : req.body.day;
 
     const date = `${dateYear}-${dateMonth}-${dateDay}`;
-    const playlistMonth = moment(date).subtract(1, 'months');
+    const playlistMonth = moment(date).subtract(1, 'months').add(1, 'hour');
     const playlistName = playlistMonth.format('MMMM YYYY');
 
     const history = await slack.fetchChannelHistory(playlistMonth);
@@ -100,6 +102,7 @@ app.post('/trigger', async (req, res) => {
 
     // create new playlist
     let playlist = await spotify.createPlaylist(playlistName);
+    playlist.date = playlistMonth.utc().toDate();
     const playlistId = await spotify.savePlaylist(playlist, contributors);
     await spotify.saveTracks(tracks, playlistId);
 
@@ -140,6 +143,54 @@ app.post('/trigger', async (req, res) => {
     const e = { message: error.message, stack: error.stack };
     await slack.sendMessage(JSON.stringify(e));
     res.send(JSON.stringify(e));
+  }
+});
+
+app.get('/playlist/:spotify_id', async (req, res) => {
+  try {
+    const result = await spotify.performAuthentication();
+    if (result && result.code === 401) {
+      return res.status(401).send({ message: result.message });
+    }
+
+    const { spotify_id: spotifyId } = req.params;
+    const playlist = await Playlist.findOne({spotifyId}).populate('contributors');
+    if (!playlist) {
+      return res.status(404).send({
+        status: false,
+        message: 'Playlist not found',
+      });
+    }
+    return res.status(200).send({
+      status: true,
+      data: playlist,
+    });
+  } catch (err) {
+    console.log(err)
+    return res.status(500).send({ message: 'An error occurred' });
+  }
+  
+});
+
+app.get('/playlists', async (req, res) => {
+  try {
+    const result = await spotify.performAuthentication();
+    if (result && result.code === 401) {
+      return res.status(401).send({ message: result.message });
+    }
+
+    const skip = Number(req.query.skip) || 0;
+    const limit = Number(req.query.limit) || 12;
+
+    const playlists = await spotify.findAllPlaylists(skip, limit);
+    return res.status(200).send({
+      status: true,
+      data: playlists,
+    });
+  }
+  catch (err) {
+    console.log(err)
+    return res.status(500).send({ message: 'An error occurred' });
   }
 });
 

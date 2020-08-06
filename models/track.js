@@ -6,7 +6,7 @@ const trackSchema = new mongoose.Schema({
   url: String,
   trackId: String,
   contributors: [mongoose.ObjectId],
-  playlist: mongoose.ObjectId,
+  playlist: { type: mongoose.ObjectId, ref: 'Playlist' },
 });
 const Track = mongoose.model('Track', trackSchema);
 

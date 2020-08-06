@@ -187,6 +187,7 @@ const savePlaylist = async (playlistData, contributors) => {
     description: playlistData.description,
     url: playlistData.external_urls.spotify,
     spotifyId: playlistData.id,
+    date: playlistData.date,
     contributors: contributorIds,
   });
   return playlist.id;
@@ -209,6 +210,10 @@ const saveTracks = async (tracksData, playlistId) => {
   await Track.insertMany(tracksDocs);
 };
 
+const findAllPlaylists = async (skip, limit) => {
+  return Playlist.find({}, {}, {skip, limit}).sort({date: -1});
+}
+
 module.exports = {
   createAuthURL,
   performAuthentication,
@@ -222,4 +227,5 @@ module.exports = {
   getSpotifyUrlParts,
   savePlaylist,
   saveTracks,
+  findAllPlaylists,
 };
