@@ -5,9 +5,8 @@ const trackSchema = new mongoose.Schema({
   title: String,
   url: String,
   trackId: String,
-  contributors: [mongoose.ObjectId],
-  playlist: { type: mongoose.ObjectId, ref: 'Playlist' },
+  contributors: [{type: mongoose.ObjectId, ref: 'Contributor'}],
 });
-const Track = mongoose.model('Track', trackSchema);
+const Track = mongoose.model('Track', trackSchema, 'tracks');
 
 module.exports = Track;

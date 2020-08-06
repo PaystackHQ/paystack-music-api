@@ -84,7 +84,7 @@ app.post('/trigger', async (req, res) => {
     const dateDay = Number(req.body.day) < 10 ? `0${Number(req.body.day)}` : req.body.day;
 
     const date = `${dateYear}-${dateMonth}-${dateDay}`;
-    const playlistMonth = moment(date).subtract(1, 'months').add(1, 'hour');
+    const playlistMonth = moment(date).subtract(1, 'months');
     const playlistName = playlistMonth.format('MMMM YYYY');
 
     const history = await slack.fetchChannelHistory(playlistMonth);
@@ -101,8 +101,8 @@ app.post('/trigger', async (req, res) => {
     // create new playlist
     let playlist = await spotify.createPlaylist(playlistName);
     playlist.date = playlistMonth.utc().toDate();
-    const playlistId = await spotify.savePlaylist(playlist, contributors);
-    await spotify.saveTracks(tracks, playlistId);
+    const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
+    await spotify.saveTracks(tracks, savedPlaylist);
 
     // and songs to playlist
     const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
@@ -144,15 +144,13 @@ app.post('/trigger', async (req, res) => {
   }
 });
 
-app.get('/playlist/:spotify_id', async (req, res) => {
+app.get('/playlist/:id', async (req, res) => {
   try {
-    const result = await spotify.performAuthentication();
-    if (result && result.code === 401) {
-      return res.status(401).send({ message: result.message });
-    }
+    const { id } = req.params;
+    const skip = Number(req.query.skip) || 0;
+    const limit = Number(req.query.limit) || 20;
 
-    const { spotify_id: spotifyId } = req.params;
-    const playlist = await Playlist.findOne({spotifyId}).populate('contributors');
+    const playlist = await spotify.findPlaylist(id, skip, limit);
     if (!playlist) {
       return res.status(404).send({
         status: false,
@@ -164,19 +162,34 @@ app.get('/playlist/:spotify_id', async (req, res) => {
       data: playlist,
     });
   } catch (err) {
-    console.log(err)
     return res.status(500).send({ message: 'An error occurred' });
   }
-  
+});
+
+app.get('/playlist/:id/contributors', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const skip = Number(req.query.skip) || 0;
+    const limit = Number(req.query.limit) || 20;
+
+    const contributors = await spotify.findContributors(id, skip, limit);
+    if (!contributors.length) {
+      return res.status(404).send({
+        status: false,
+        message: 'Contributors not found',
+      });
+    }
+    return res.status(200).send({
+      status: true,
+      data: contributors,
+    });
+  } catch (err) {
+    return res.status(500).send({ message: 'An error occurred' });
+  }
 });
 
 app.get('/playlists', async (req, res) => {
   try {
-    const result = await spotify.performAuthentication();
-    if (result && result.code === 401) {
-      return res.status(401).send({ message: result.message });
-    }
-
     const skip = Number(req.query.skip) || 0;
     const limit = Number(req.query.limit) || 12;
 
@@ -187,7 +200,6 @@ app.get('/playlists', async (req, res) => {
     });
   }
   catch (err) {
-    console.log(err)
     return res.status(500).send({ message: 'An error occurred' });
   }
 });
