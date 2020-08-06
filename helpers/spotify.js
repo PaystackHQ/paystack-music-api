@@ -275,7 +275,7 @@ const findContributors = async (playlistId, skip, limit) => {
  * @returns {Promise<Array>} The playlist data for multiple playlists
  */
 const findAllPlaylists = async (skip, limit) => {
-  return Playlist.find({}, { tracks: 0, contributors: 0, __v: 0 }, {skip, limit}).sort({date: -1});
+  return Playlist.find({}, { tracks: 0, contributors: 0, __v: 0 }, {skip, limit}).sort({date_added: -1});
 }
 
 module.exports = {
