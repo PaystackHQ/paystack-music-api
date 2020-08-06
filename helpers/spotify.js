@@ -189,7 +189,7 @@ const savePlaylist = async (playlistData, contributors) => {
     description: playlistData.description,
     url: playlistData.external_urls.spotify,
     spotifyId: playlistData.id,
-    date: playlistData.date,
+    date_added: playlistData.date,
     contributors: contributorIds,
   });
   return playlist;
