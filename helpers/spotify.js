@@ -4,7 +4,6 @@ const moment = require('moment');
 const cryptoJS = require('crypto-js');
 const { spotify: spotifyConfig } = require('../config');
 const { chunkArray } = require('./util');
-const { ObjectId } = require('mongodb');
 
 const Authentication = require('../models/authentication');
 const Playlist = require('../models/playlist');
@@ -253,7 +252,7 @@ const findPlaylist = async (playlistId, skip, limit) => {
  * @returns {Array} The contributor data for multiple contributors
  */
 const findContributors = async (playlistId, skip, limit) => {
-  const playlist = await Playlist.findOne({_id: ObjectId(playlistId)})
+  const playlist = await Playlist.findById(playlistId)
     .select({ tracks: 0, __v: 0 })
     .populate({
       path: 'contributors',
