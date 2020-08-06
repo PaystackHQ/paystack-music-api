@@ -83,6 +83,7 @@ const performAuthentication = async (code = '') => {
   }
 
   if (moment.utc().diff(moment(authToken.expires_at), 'hours') >= TOKEN_DURATION_IN_HOURS) {
+    spotifyApi.setRefreshToken(refreshToken);
     accessToken = await refreshAccessTokenFromAPI();
     const encryptedAccessToken = encryptToken(accessToken);
     const encryptedRefreshToken = encryptToken(refreshToken);
