@@ -100,7 +100,7 @@ app.post('/trigger', async (req, res) => {
 
     // create new playlist
     let playlist = await spotify.createPlaylist(playlistName);
-    playlist.date = playlistMonth.utc().toDate();
+    playlist.date_added = playlistMonth.utc().toDate();
     const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
     await spotify.saveTracks(tracks, savedPlaylist);
 
