@@ -189,7 +189,7 @@ const savePlaylist = async (playlistData, contributors) => {
     description: playlistData.description,
     url: playlistData.external_urls.spotify,
     spotifyId: playlistData.id,
-    date_added: playlistData.date,
+    date_added: playlistData.date_added,
     contributors: contributorIds,
   });
   return playlist;
@@ -222,7 +222,7 @@ const saveTracks = async (tracksData, playlist) => {
  * @returns {Promise<Object>} The playlist data
  */
 const findPlaylist = async (playlistId, skip, limit) => {
-  return Playlist.findOne({_id: ObjectId(playlistId)})
+  return Playlist.findById(playlistId)
     .select({ contributors: 0, __v: 0 })
     .populate({
       path: 'tracks',
