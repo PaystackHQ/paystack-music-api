@@ -7,6 +7,7 @@ const { chunkArray } = require('./util');
 
 const Authentication = require('../models/authentication');
 const Playlist = require('../models/playlist');
+const Artist = require('../models/artist');
 const Track = require('../models/track');
 const Contributor = require('../models/contributor');
 const logger = require('./logger');
@@ -160,7 +161,10 @@ const isSpotifyTrack = (trackURL) => {
  */
 const getSpotifyUrlParts = (trackUrl) => {
   const [, , , mediaType, trackId] = trackUrl.split('?')[0].split('/');
-  return { mediaType, trackId };
+  return {
+    mediaType,
+    trackId
+  };
 };
 
 /**
@@ -184,15 +188,17 @@ async function getTrackData(trackIds) {
     Array.prototype.push.apply(trackDataArray, tracks);
   });
 
-  return trackDataArray.filter((track) => !!track).map((track) => ({
-    explicit: track.explicit,
-    duration: track.duration_ms / 1000,
-    url: track.external_urls.spotify,
-    name: track.name,
-    artist_names: track.artists.map((artist) => artist.name),
-    album_covers: track.album.images,
-    id: track.id,
-  }));
+  return trackDataArray.filter((track) => !!track)
+    .map((track) => ({
+      explicit: track.explicit,
+      duration: track.duration_ms / 1000,
+      url: track.external_urls.spotify,
+      name: track.name,
+      artists: track.artists,
+      artist_names: track.artists.map((artist) => artist.name),
+      album_covers: track.album.images,
+      id: track.id,
+    }));
 }
 
 /**
@@ -216,6 +222,18 @@ const savePlaylist = async (playlistData, contributors) => {
   return playlist;
 };
 
+const saveArtists = async (trackDetails) => {
+  const artistDocs = (await Promise.all(trackDetails.map(async (track) => {
+    return track.artists.map((artist) => ({
+      name: artist.name,
+      url: artist.href,
+      spotifyId: artist.id,
+    }));
+  }))).flat();
+
+  await Artist.insertMany(artistDocs);
+};
+
 /**
  * @description Saves playlist tracks to the database
  * @param {Array<Object>} tracksData array of tracks to be saved
@@ -223,18 +241,31 @@ const savePlaylist = async (playlistData, contributors) => {
  * @returns {Promise<>}
  */
 const saveTracks = async (tracksData, playlist) => {
-  const tracksDocs = await Promise.all(tracksData.map(async (track) => {
-    const contributors = await Contributor.find({ slackId: { $in: track.users } });
+  const trackDetails = await getTrackData(tracksData.map((track) => track.id));
+
+  // Save artists
+  await saveArtists(trackDetails);
+
+  const tracksDocs = await Promise.all(trackDetails.map(async (track) => {
+    const slackData = tracksData.find((t) => t.id === track.id);
+    const contributors = await Contributor.find({ slackId: { $in: slackData.users } });
     // eslint-disable-next-line no-underscore-dangle
     const contributorIds = contributors.map((c) => c._id);
+
+    const spotifyArtistIds = track.artists.map((artist) => artist.id);
+    const artists = await Artist.find({ spotifyId: { $in: spotifyArtistIds } });
+    const artistIds = artists.map((a) => a._id);
+
     return {
       service: track.service,
       title: track.title,
       track_url: track.link,
       trackId: track.id,
       contributors: contributorIds,
+      artists: artistIds,
     };
   }));
+
   const tracks = await Track.insertMany(tracksDocs);
   // eslint-disable-next-line no-underscore-dangle
   const trackIds = tracks.map((t) => t._id);
@@ -317,11 +348,16 @@ const findPlaylist = async (playlistId) => {
         trackId: 1,
         analytics: 1,
       },
-      populate: {
-        path: 'contributors',
-        model: 'Contributor',
-        select: contributorFields,
-      },
+      populate: [
+        {
+          path: 'contributors',
+          model: 'Contributor',
+        },
+        {
+          path: 'artists',
+          model: 'Artist',
+        },
+      ],
     })
     .populate({
       path: 'contributors',
