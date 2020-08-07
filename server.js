@@ -145,25 +145,18 @@ app.get('/covers', (req, res) => {
   res.sendFile(path.join(`${__dirname}/views/covers.html`));
 });
 
-app.get('/track/audio-features', async (req, res) => {
+app.get('/track/:id/audio-features', async (req, res) => {
   try {
-    const { spotify_link: spotifyLink } = req.query;
-    if (!spotifyLink) {
+    const { id: trackId } = req.params;
+    if (!trackId) {
       return res.status(400).send({
         status: false,
-        message: '"spotify_link" is required',
-      });
-    }
-    if (!spotify.isSpotifyTrack(spotifyLink)) {
-      return res.status(400).send({
-        status: false,
-        message: 'Spotify link is invalid',
+        message: '"track_id" is required',
       });
     }
 
     await spotify.performAuthentication();
-    const { trackId: spotifyID } = spotify.getSpotifyUrlParts(spotifyLink);
-    const trackFeatures = await spotify.getAudioFeaturesForTrack(spotifyID);
+    const trackFeatures = await spotify.getAudioFeaturesForTrack(trackId);
     return res.status(200).send({
       status: true,
       data: trackFeatures,

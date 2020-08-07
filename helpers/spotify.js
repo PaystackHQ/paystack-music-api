@@ -124,12 +124,24 @@ const setPlaylistCover = async (id, image) => {
 };
 
 /**
+ * @description sanitizes the response for spotify's get audio track features API
+ * @param {Object|null} data The data to be sanitized
+ * @returns {Object} the sanitized audio features for a track
+ */
+const sanitizeGetAudioFeaturesForTrackResponse = (data) => {
+  if (!data) return {};
+  const { duration_ms: durationMs, ...dataWithoutDurationInMs } = data;
+  return { ...dataWithoutDurationInMs, duration: durationMs / 1000 };
+};
+
+/**
  * @description returns the features for a single track
  * @param {String} tracks A single track URL (string)
  * @returns {Promise<Object>} The audio features for a track
  */
 const getAudioFeaturesForTrack = (trackID) => spotifyApi.getAudioFeaturesForTrack(trackID)
-  .then((response) => response.body);
+  .then((response) => sanitizeGetAudioFeaturesForTrackResponse(response.body));
+
 /**
  * @description confirms that a URL is a Spotify URL
  * @param {String} trackURL the URL to be checked
