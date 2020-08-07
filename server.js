@@ -11,6 +11,8 @@ const path = require('path');
 const { app: appConfig } = require('./config');
 require('./db');
 
+const Playlist = require('./models/playlist');
+
 const slack = require('./helpers/slack');
 const spotify = require('./helpers/spotify');
 const color = require('./helpers/color');
@@ -98,8 +100,9 @@ app.post('/trigger', async (req, res) => {
 
     // create new playlist
     let playlist = await spotify.createPlaylist(playlistName);
-    const playlistId = await spotify.savePlaylist(playlist, contributors);
-    await spotify.saveTracks(tracks, playlistId);
+    playlist.date_added = playlistMonth.utc().toDate();
+    const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
+    await spotify.saveTracks(tracks, savedPlaylist);
 
     // and songs to playlist
     const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
@@ -138,6 +141,66 @@ app.post('/trigger', async (req, res) => {
     const e = { message: error.message, stack: error.stack };
     await slack.sendMessage(JSON.stringify(e));
     res.send(JSON.stringify(e));
+  }
+});
+
+app.get('/playlist/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const skip = Number(req.query.skip) || 0;
+    const limit = Number(req.query.limit) || 20;
+
+    const playlist = await spotify.findPlaylist(id, skip, limit);
+    if (!playlist) {
+      return res.status(404).send({
+        status: false,
+        message: 'Playlist not found',
+      });
+    }
+    return res.status(200).send({
+      status: true,
+      data: playlist,
+    });
+  } catch (err) {
+    return res.status(500).send({ message: 'An error occurred' });
+  }
+});
+
+app.get('/playlist/:id/contributors', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const skip = Number(req.query.skip) || 0;
+    const limit = Number(req.query.limit) || 20;
+
+    const contributors = await spotify.findContributors(id, skip, limit);
+    if (!contributors.length) {
+      return res.status(404).send({
+        status: false,
+        message: 'Contributors not found',
+      });
+    }
+    return res.status(200).send({
+      status: true,
+      data: contributors,
+    });
+  } catch (err) {
+    return res.status(500).send({ message: 'An error occurred' });
+  }
+});
+
+app.get('/playlists', async (req, res) => {
+  try {
+    const skip = Number(req.query.skip) || 0;
+    const limit = Number(req.query.limit) || 12;
+
+    const playlists = await spotify.findAllPlaylists(skip, limit);
+    return res.status(200).send({
+      status: true,
+      data: playlists,
+    });
+  }
+  catch (err) {
+    return res.status(500).send({ message: 'An error occurred' });
   }
 });
 

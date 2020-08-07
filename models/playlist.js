@@ -5,7 +5,9 @@ const playlistSchema = new mongoose.Schema({
   description: String,
   url: String,
   spotifyId: String,
-  contributors: [mongoose.ObjectId],
+  date_added: Date,
+  tracks: [{ type: mongoose.ObjectId, ref: 'Track' }],
+  contributors: [{ type: mongoose.ObjectId, ref: 'Contributor' }],
 });
 const Playlist = mongoose.model('Playlist', playlistSchema);
 
