@@ -199,7 +199,7 @@ const savePlaylist = async (playlistData, contributors) => {
   const playlist = await Playlist.create({
     name: playlistData.name,
     description: playlistData.description,
-    url: playlistData.external_urls.spotify,
+    playlist_url: playlistData.external_urls.spotify,
     spotifyId: playlistData.id,
     date_added: playlistData.date_added,
     contributors: contributorIds,
@@ -215,7 +215,7 @@ const saveTracks = async (tracksData, playlist) => {
     return {
       service: track.service,
       title: track.title,
-      url: track.link,
+      track_url: track.link,
       trackId: track.id,
       contributors: contributorIds,
     };
@@ -226,68 +226,98 @@ const saveTracks = async (tracksData, playlist) => {
   await playlist.save();
 };
 
+const getTrackAudioFeatures = async (tracks) => {
+  const trackIds = tracks.map(t => t.id);
+  const trackIdChunks = chunkArray(trackIds, 50);
+  const trackDataArray = [];
+
+  const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getAudioFeaturesForTracks(chunk));
+
+  const responses = await Promise.all(trackDataPromises);
+  responses.forEach((response) => {
+    const { audio_features: audioFeatures } = response.body;
+    Array.prototype.push.apply(trackDataArray, audioFeatures);
+  });
+
+  const trackUpdatePromises = trackDataArray.filter((track) => !!track).map((track) => {
+    const sanitisedTrack = sanitizeGetAudioFeaturesForTrackResponse(track);
+    const { id: trackId } = sanitisedTrack;
+    delete sanitisedTrack.id;
+    return Track.findOneAndUpdate({ trackId }, { analytics: sanitisedTrack }, { upsert: true });
+  });
+  Promise.all(trackUpdatePromises);
+}
+
 /**
  * @description Returns a playlist
  * @param {String} playlistId ID of the playlist we want
- * @param {Number} skip Number of playlists to skip during pagination
- * @param {Number} limit Number of playlists to return
  * @returns {Promise<Object>} The playlist data
  */
-const findPlaylist = async (playlistId, skip, limit) => {
+const findPlaylist = async (playlistId) => {
+  const contributorFields = {
+    _id: 1,
+    name: 1,
+    about: 1,
+    profile_image: 1,
+  };
   return Playlist.findById(playlistId)
-    .select({ contributors: 0, __v: 0 })
+    .select({ name: 1, description: 1, playlist_url: 1, hex: 1 })
     .populate({
       path: 'tracks',
       select: {
         _id: 1,
         service: 1,
         title: 1,
-        url: 1,
+        track_url: 1,
         trackId: 1,
+        analytics: 1,
       },
       populate: {
         path: 'contributors',
         model: 'Contributor',
+        select: contributorFields,
       },
-      options: {
-        skip,
-        limit,
-      },
+  })
+  .populate({
+    path: 'contributors',
+    model: 'Contributor',
+    select: contributorFields,
   }).exec();
-}
-
-/**
- * @description returns an array of contributors to a playlist
- * @param {String} playlistId ID of the playlist whose contributors we want
- * @param {Number} skip Number of playlists to skip during pagination
- * @param {Number} limit Number of playlists to return
- * @returns {Array} The contributor data for multiple contributors
- */
-const findContributors = async (playlistId, skip, limit) => {
-  const playlist = await Playlist.findById(playlistId)
-    .select({ tracks: 0, __v: 0 })
-    .populate({
-      path: 'contributors',
-      options: {
-        sort: {
-          name: 1,
-        },
-        skip,
-        limit,
-      },
-  }).exec();
-  if (!playlist) return [];
-  return playlist.contributors;
 }
 
 /**
  * @description returns an array of playlists
- * @param {Number} skip Number of playlists to skip during pagination
- * @param {Number} limit Number of playlists to return
  * @returns {Promise<Array>} The playlist data for multiple playlists
  */
-const findAllPlaylists = async (skip, limit) => {
-  return Playlist.find({}, { tracks: 0, contributors: 0, __v: 0 }, {skip, limit}).sort({date_added: -1});
+const findAllPlaylists = async () => {
+  const contributorFields = {
+    _id: 1,
+    name: 1,
+    about: 1,
+    profile_image: 1,
+  };
+  return Playlist.find({}, { name: 1, description: 1, playlist_url: 1, hex: 1 }, {})
+  .sort({date_added: -1})
+  .populate({
+    path: 'tracks',
+    select: {
+      _id: 1,
+      service: 1,
+      title: 1,
+      track_url: 1,
+      trackId: 1,
+      analytics: 1,
+    },
+    populate: {
+      path: 'contributors',
+      model: 'Contributor',
+      select: contributorFields,
+    },
+})
+.populate({
+  path: 'contributors',
+  model: 'Contributor',
+}).exec();
 }
 
 module.exports = {
@@ -303,7 +333,7 @@ module.exports = {
   getSpotifyUrlParts,
   savePlaylist,
   saveTracks,
+  getTrackAudioFeatures,
   findPlaylist,
-  findContributors,
   findAllPlaylists,
 };

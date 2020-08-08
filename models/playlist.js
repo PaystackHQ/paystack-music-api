@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const playlistSchema = new mongoose.Schema({
   name: String,
   description: String,
-  url: String,
+  playlist_url: String,
   spotifyId: String,
+  hex: String,
   date_added: Date,
   tracks: [{ type: mongoose.ObjectId, ref: 'Track' }],
   contributors: [{ type: mongoose.ObjectId, ref: 'Contributor' }],

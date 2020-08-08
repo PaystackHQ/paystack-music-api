@@ -141,7 +141,8 @@ module.exports = {
         { slackId: user },
         {
           name: data.user.profile.real_name,
-          photoUrl: data.user.profile.image_original,
+          about: data.user.profile.title,
+          profile_image: data.user.profile.image_original,
           slackId: user,
         },
         { new: true, upsert: true },
