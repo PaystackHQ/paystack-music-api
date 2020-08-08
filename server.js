@@ -103,6 +103,7 @@ app.post('/trigger', async (req, res) => {
     playlist.date_added = playlistMonth.utc().toDate();
     const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
     await spotify.saveTracks(tracks, savedPlaylist);
+    await spotify.getAudioFeaturesForTracks(tracks);
 
     // and songs to playlist
     const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
@@ -120,6 +121,9 @@ app.post('/trigger', async (req, res) => {
 
     // pick color from current cover art
     const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
+
+    // save the playlist color
+    await Playlist.findOneAndUpdate({ spotifyId: playlist.id }, { hex: dominantColor }, { upsert: true });
 
     // create new cover art
     const newCoverImage = await image.generateCoverImage({
@@ -147,10 +151,8 @@ app.post('/trigger', async (req, res) => {
 app.get('/playlist/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const skip = Number(req.query.skip) || 0;
-    const limit = Number(req.query.limit) || 20;
 
-    const playlist = await spotify.findPlaylist(id, skip, limit);
+    const playlist = await spotify.findPlaylist(id);
     if (!playlist) {
       return res.status(404).send({
         status: false,
@@ -166,34 +168,10 @@ app.get('/playlist/:id', async (req, res) => {
   }
 });
 
-app.get('/playlist/:id/contributors', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const skip = Number(req.query.skip) || 0;
-    const limit = Number(req.query.limit) || 20;
-
-    const contributors = await spotify.findContributors(id, skip, limit);
-    if (!contributors.length) {
-      return res.status(404).send({
-        status: false,
-        message: 'Contributors not found',
-      });
-    }
-    return res.status(200).send({
-      status: true,
-      data: contributors,
-    });
-  } catch (err) {
-    return res.status(500).send({ message: 'An error occurred' });
-  }
-});
-
 app.get('/playlists', async (req, res) => {
   try {
-    const skip = Number(req.query.skip) || 0;
-    const limit = Number(req.query.limit) || 12;
 
-    const playlists = await spotify.findAllPlaylists(skip, limit);
+    const playlists = await spotify.findAllPlaylists();
     return res.status(200).send({
       status: true,
       data: playlists,
