@@ -121,6 +121,8 @@ app.post('/trigger', async (req, res) => {
     // pick color from current cover art
     const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
 
+    await Playlist.findOneAndUpdate({ spotifyId: playlist.id }, { hex: dominantColor }, { upsert: true });
+
     // create new cover art
     const newCoverImage = await image.generateCoverImage({
       color: dominantColor,
