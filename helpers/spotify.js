@@ -206,6 +206,7 @@ const savePlaylist = async (playlistData, contributors) => {
     name: playlistData.name,
     description: playlistData.description,
     playlist_url: playlistData.external_urls.spotify,
+    playlist_uri: `spotify:playlist:${playlistData.id}`,
     spotifyId: playlistData.id,
     date_added: playlistData.date_added,
     contributors: contributorIds,
@@ -278,7 +279,7 @@ const findPlaylist = async (playlistId) => {
     profile_image: 1,
   };
   return Playlist.findById(playlistId)
-    .select({ name: 1, description: 1, playlist_url: 1, hex: 1 })
+    .select({ name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1 })
     .populate({
       path: 'tracks',
       select: {
@@ -307,34 +308,7 @@ const findPlaylist = async (playlistId) => {
  * @returns {Promise<Array>} The playlist data for multiple playlists
  */
 const findAllPlaylists = async () => {
-  const contributorFields = {
-    _id: 1,
-    name: 1,
-    about: 1,
-    profile_image: 1,
-  };
-  return Playlist.find({}, { name: 1, description: 1, playlist_url: 1, hex: 1 }, {})
-  .sort({date_added: -1})
-  .populate({
-    path: 'tracks',
-    select: {
-      _id: 1,
-      service: 1,
-      title: 1,
-      track_url: 1,
-      trackId: 1,
-      analytics: 1,
-    },
-    populate: {
-      path: 'contributors',
-      model: 'Contributor',
-      select: contributorFields,
-    },
-})
-.populate({
-  path: 'contributors',
-  model: 'Contributor',
-}).exec();
+  return Playlist.find({}, { name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1 }, {});
 }
 
 module.exports = {
