@@ -193,6 +193,12 @@ async function getTrackData(trackIds) {
   }));
 }
 
+/**
+ * @description Saves playlist to the database
+ * @param {Array<Object>} playlistData playlist information
+ * @param {Array<Object>} contributors contributor information
+ * @returns {Promise<>}
+ */
 const savePlaylist = async (playlistData, contributors) => {
   // eslint-disable-next-line no-underscore-dangle
   const contributorIds = contributors.map((c) => c._id);
@@ -207,6 +213,12 @@ const savePlaylist = async (playlistData, contributors) => {
   return playlist;
 };
 
+/**
+ * @description Saves playlist tracks to the database
+ * @param {Array<Object>} tracksData array of tracks to be saved
+ * @param {Object} playlist
+ * @returns {Promise<>}
+ */
 const saveTracks = async (tracksData, playlist) => {
   const tracksDocs = await Promise.all(tracksData.map(async (track) => {
     const contributors = await Contributor.find({ slackId: { $in: track.users } });
@@ -226,6 +238,11 @@ const saveTracks = async (tracksData, playlist) => {
   await playlist.save();
 };
 
+/**
+ * @description Returns a playlist
+ * @param {Array<Object>} tracks array of tracks
+ * @returns {Promise<>}
+ */
 const getTrackAudioFeatures = async (tracks) => {
   const trackIds = tracks.map(t => t.id);
   const trackIdChunks = chunkArray(trackIds, 50);
@@ -245,7 +262,7 @@ const getTrackAudioFeatures = async (tracks) => {
     delete sanitisedTrack.id;
     return Track.findOneAndUpdate({ trackId }, { analytics: sanitisedTrack }, { upsert: true });
   });
-  Promise.all(trackUpdatePromises);
+  return Promise.all(trackUpdatePromises);
 }
 
 /**

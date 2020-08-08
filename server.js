@@ -122,6 +122,7 @@ app.post('/trigger', async (req, res) => {
     // pick color from current cover art
     const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
 
+    // save the playlist color
     await Playlist.findOneAndUpdate({ spotifyId: playlist.id }, { hex: dominantColor }, { upsert: true });
 
     // create new cover art
@@ -163,7 +164,6 @@ app.get('/playlist/:id', async (req, res) => {
       data: playlist,
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).send({ message: 'An error occurred' });
   }
 });
