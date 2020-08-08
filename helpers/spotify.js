@@ -243,7 +243,7 @@ const saveTracks = async (tracksData, playlist) => {
  * @param {Array<Object>} tracks array of tracks
  * @returns {Promise<>}
  */
-const getTrackAudioFeatures = async (tracks) => {
+const getAudioFeaturesForTracks = async (tracks) => {
   const trackIds = tracks.map(t => t.id);
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
@@ -350,7 +350,7 @@ module.exports = {
   getSpotifyUrlParts,
   savePlaylist,
   saveTracks,
-  getTrackAudioFeatures,
+  getAudioFeaturesForTracks,
   findPlaylist,
   findAllPlaylists,
 };

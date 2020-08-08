@@ -103,7 +103,7 @@ app.post('/trigger', async (req, res) => {
     playlist.date_added = playlistMonth.utc().toDate();
     const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
     await spotify.saveTracks(tracks, savedPlaylist);
-    await spotify.getTrackAudioFeatures(tracks);
+    await spotify.getAudioFeaturesForTracks(tracks);
 
     // and songs to playlist
     const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
