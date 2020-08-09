@@ -270,6 +270,25 @@ const getAudioFeaturesForTracks = async (tracks) => {
   return Promise.all(trackUpdatePromises);
 }
 
+const getPreviewUrlForTracks = async(tracks) => {
+  const trackIds = tracks.map(t => t.id);
+  const trackIdChunks = chunkArray(trackIds, 50);
+  const trackDataArray = [];
+
+  const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getTracks(chunk));
+
+  const responses = await Promise.all(trackDataPromises);
+  responses.forEach((response) => {
+    const { tracks } = response.body;
+    Array.prototype.push.apply(trackDataArray, tracks);
+  });
+
+  const trackUpdatePromises = trackDataArray.filter((track) => !!track).map((track) => {
+    return Track.findOneAndUpdate({ trackId: track.id }, { preview_url: track.preview_url }, { upsert: true });
+  });
+  return Promise.all(trackUpdatePromises);
+}
+
 /**
  * @description Returns a playlist
  * @param {String} playlistId ID of the playlist we want
@@ -291,6 +310,7 @@ const findPlaylist = async (playlistId) => {
         service: 1,
         title: 1,
         track_url: 1,
+        preview_url: 1,
         trackId: 1,
         analytics: 1,
       },
@@ -329,6 +349,7 @@ module.exports = {
   savePlaylist,
   saveTracks,
   getAudioFeaturesForTracks,
+  getPreviewUrlForTracks,
   findPlaylist,
   findAllPlaylists,
 };

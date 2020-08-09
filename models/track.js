@@ -5,6 +5,7 @@ const trackSchema = new mongoose.Schema({
   title: String,
   artist: String,
   track_url: String,
+  preview_url: String,
   trackId: String,
   contributors: [{type: mongoose.ObjectId, ref: 'Contributor'}],
   analytics: mongoose.Mixed,

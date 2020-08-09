@@ -121,6 +121,7 @@ app.post('/trigger', async (req, res) => {
     await spotify.saveTracks(tracks, savedPlaylist);
     logger.debug('Saved tracks');
     await spotify.getAudioFeaturesForTracks(tracks);
+    await spotify.getPreviewUrlForTracks(tracks);
     logger.debug('Fetched audio features for tracks');
 
     // and songs to playlist
