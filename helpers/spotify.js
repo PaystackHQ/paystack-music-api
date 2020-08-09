@@ -106,10 +106,7 @@ const createPlaylist = (name) => {
   const { userId } = spotifyConfig;
   logger.debug(spotifyApi.getAccessToken());
   return spotifyApi.createPlaylist(userId, name, { public: true })
-    .then((response) => response.body)
-    .catch((err) => {
-      logger.error(err);
-    });
+    .then((response) => response.body);
 };
 
 const addTracksToPlaylist = (id, tracks) => spotifyApi.addTracksToPlaylist(id, tracks);
