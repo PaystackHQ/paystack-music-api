@@ -21,7 +21,8 @@
     "moment": "^2.27.0",
     "mongoose": "^5.9.25",
     "puppeteer": "^1.20.0",
-    "spotify-web-api-node": "^4.0.0"
+    "spotify-web-api-node": "^4.0.0",
+    "winston": "^3.3.3"
   },
   "repository": {
     "url": "https://glitch.com/edit/#!/hello-express"

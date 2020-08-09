@@ -22,4 +22,5 @@ module.exports = {
     sourceChannel: process.env.SLACK_SOURCE_CHANNEL,
     targetChannel: process.env.SLACK_TARGET_CHANNEL,
   },
+  debugMode: process.env.DEBUG === 'true',
 };

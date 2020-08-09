@@ -9,6 +9,8 @@ const moment = require('moment');
 const app = express();
 const path = require('path');
 const { app: appConfig } = require('./config');
+const logger = require('./helpers/logger');
+
 require('./db');
 
 const Playlist = require('./models/playlist');
@@ -170,14 +172,12 @@ app.get('/playlist/:id', async (req, res) => {
 
 app.get('/playlists', async (req, res) => {
   try {
-
     const playlists = await spotify.findAllPlaylists();
     return res.status(200).send({
       status: true,
       data: playlists,
     });
-  }
-  catch (err) {
+  } catch (err) {
     return res.status(500).send({ message: 'An error occurred' });
   }
 });
@@ -240,5 +240,5 @@ app.post('/webhook', (req, res) => {
 
 // listen for requests :)
 const listener = app.listen(appConfig.port, () => {
-  console.log(`Your app is listening on port ${listener.address().port}`);
+  logger.info(`Your app is listening on port ${listener.address().port}`);
 });
