@@ -86,7 +86,17 @@ app.post('/trigger', async (req, res) => {
     const date = `${dateYear}-${dateMonth}-${dateDay}`;
     const playlistMonth = moment(date).subtract(1, 'months');
     const playlistName = playlistMonth.format('MMMM YYYY');
-
+    // Search for an existing playlist before continueing the playlist creation process.
+    // A case insensitive search is used for completeness.
+    // Please see https://github.com/PaystackHQ/paystack-music-api/pull/15#discussion_r467569438
+    // for more context.
+    const playlistExists = Playlist.find({ name: new RegExp(`^${playlistName}$`, 'i') });
+    if (playlistExists) {
+      return res.status(409).send({
+        status: true,
+        message: 'The playlist for this month has already been created',
+      });
+    }
     const history = await slack.fetchChannelHistory(playlistMonth);
 
     if (!(history.messages && history.messages.length)) {
@@ -140,11 +150,11 @@ app.post('/trigger', async (req, res) => {
     await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
 
     // finish
-    res.send(`${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`);
+    return res.send(`${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`);
   } catch (error) {
     const e = { message: error.message, stack: error.stack };
     await slack.sendMessage(JSON.stringify(e));
-    res.send(JSON.stringify(e));
+    return res.send(JSON.stringify(e));
   }
 });
 
