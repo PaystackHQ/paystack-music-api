@@ -9,6 +9,7 @@ const Authentication = require('../models/authentication');
 const Playlist = require('../models/playlist');
 const Track = require('../models/track');
 const Contributor = require('../models/contributor');
+const logger = require('./logger');
 
 const spotifyApi = new SpotifyWebApi({
   clientId: spotifyConfig.clientId,
@@ -104,7 +105,10 @@ const performAuthentication = async (code = '') => {
 const createPlaylist = (name) => {
   const { userId } = spotifyConfig;
   return spotifyApi.createPlaylist(userId, name, { public: true })
-    .then((response) => response.body);
+    .then((response) => response.body)
+    .catch((err) => {
+      logger.error(err);
+    });
 };
 
 const addTracksToPlaylist = (id, tracks) => spotifyApi.addTracksToPlaylist(id, tracks);
