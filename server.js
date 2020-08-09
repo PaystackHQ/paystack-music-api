@@ -90,7 +90,7 @@ app.post('/trigger', async (req, res) => {
     // A case insensitive search is used for completeness.
     // Please see https://github.com/PaystackHQ/paystack-music-api/pull/15#discussion_r467569438
     // for more context.
-    const playlistExists = Playlist.find({ name: new RegExp(`^${playlistName}$`, 'i') });
+    const playlistExists = await Playlist.findOne({ name: new RegExp(`^${playlistName}$`, 'i') });
     if (playlistExists) {
       return res.status(409).send({
         status: true,
