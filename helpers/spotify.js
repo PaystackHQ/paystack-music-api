@@ -330,7 +330,7 @@ const findPlaylist = async (playlistId) => {
  * @returns {Promise<Array>} The playlist data for multiple playlists
  */
 const findAllPlaylists = async () => {
-  return Playlist.find({}, { name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1 }, {});
+  return Playlist.find({}, { name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1 }, {}).sort({ date_added: -1 });
 }
 
 module.exports = {
