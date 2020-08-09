@@ -90,6 +90,7 @@ app.post('/trigger', async (req, res) => {
     const playlistName = playlistMonth.format('MMMM YYYY');
 
     const history = await slack.fetchChannelHistory(playlistMonth);
+    logger.debug('Fetched channel history');
 
     if (!(history.messages && history.messages.length)) {
       res.send('Could not find any messages. Please check the channel and try again.');
@@ -99,13 +100,18 @@ app.post('/trigger', async (req, res) => {
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
     const tracks = slack.filterSpotifyTracks(spotifyMessages);
     const contributors = await slack.saveContributors(tracks);
+    logger.debug('Saved contributors');
 
     // create new playlist
     let playlist = await spotify.createPlaylist(playlistName);
     playlist.date_added = playlistMonth.utc().toDate();
+    logger.debug('Created spotify playlist');
     const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
+    logger.debug('Saved spotify playlist');
     await spotify.saveTracks(tracks, savedPlaylist);
+    logger.debug('Saved tracks');
     await spotify.getAudioFeaturesForTracks(tracks);
+    logger.debug('Fetched audio features for tracks');
 
     // and songs to playlist
     const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
@@ -119,6 +125,7 @@ app.post('/trigger', async (req, res) => {
     }
     // get playlist cover art
     playlist = await spotify.getPlaylist(playlist.id);
+    logger.debug('Fetched playlist');
     const coverImageUrl = playlist.images[0].url;
 
     // pick color from current cover art
@@ -126,6 +133,7 @@ app.post('/trigger', async (req, res) => {
 
     // save the playlist color
     await Playlist.findOneAndUpdate({ spotifyId: playlist.id }, { hex: dominantColor }, { upsert: true });
+    logger.debug('Saved playlist color');
 
     // create new cover art
     const newCoverImage = await image.generateCoverImage({
@@ -136,6 +144,7 @@ app.post('/trigger', async (req, res) => {
 
     // attach album art to playlist
     await spotify.setPlaylistCover(playlist.id, newCoverImage);
+    logger.debug('Set playlist cover');
 
     // send playlist to slack
     await slack.sendMessage(playlist.external_urls.spotify);
