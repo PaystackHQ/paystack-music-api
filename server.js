@@ -86,6 +86,10 @@ app.post('/trigger', async (req, res) => {
     const date = `${dateYear}-${dateMonth}-${dateDay}`;
     const playlistMonth = moment(date).subtract(1, 'months');
     const playlistName = playlistMonth.format('MMMM YYYY');
+    // Search for an existing playlist before continueing the playlist creation process.
+    // A case insensitive search is used for completeness.
+    // Please see https://github.com/PaystackHQ/paystack-music-api/pull/15#discussion_r467569438
+    // for more context.
     const playlistExists = Playlist.find({ name: new RegExp(`^${playlistName}$`, 'i') });
     if (playlistExists) {
       return res.status(409).send({
