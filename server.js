@@ -164,7 +164,7 @@ app.post('/trigger', async (req, res) => {
     return res.send(`${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`);
   } catch (error) {
     const e = { message: error.message, stack: error.stack };
-    await slack.sendMessage(JSON.stringify(e));
+    // await slack.sendMessage(JSON.stringify(e));
     return res.send(JSON.stringify(e));
   }
 });
