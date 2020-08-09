@@ -104,6 +104,7 @@ const performAuthentication = async (code = '') => {
 
 const createPlaylist = (name) => {
   const { userId } = spotifyConfig;
+  logger.debug(spotifyApi.getAccessToken());
   return spotifyApi.createPlaylist(userId, name, { public: true })
     .then((response) => response.body)
     .catch((err) => {

@@ -136,9 +136,7 @@ module.exports = {
 
     const users = tracksData.reduce((acc, t) => acc.concat(t.users), []);
     const contributors = await Promise.all(users.map(async (user) => {
-      logger.debug(`fetching user from slack: ${JSON.stringify(user)}`);
       const data = await axios.get(url + user).then((response) => response.data);
-      logger.debug(`user found ${JSON.stringify(data.user)}`);
       const contributor = await Contributor.findOneAndUpdate(
         { slackId: user },
         {
