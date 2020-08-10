@@ -223,13 +223,12 @@ const savePlaylist = async (playlistData, contributors) => {
 };
 
 const saveArtists = async (trackDetails) => {
-  const artistDocs = (await Promise.all(trackDetails.map(async (track) => {
-    return track.artists.map((artist) => ({
-      name: artist.name,
-      url: artist.href,
-      spotifyId: artist.id,
-    }));
-  }))).flat();
+  const artists = trackDetails.map((track) => track.artists);
+  const artistDocs = artists.map((artist) => ({
+    name: artist.name,
+    url: artist.href,
+    spotifyId: artist.id,
+  })).flat();
 
   await Artist.insertMany(artistDocs);
 };
