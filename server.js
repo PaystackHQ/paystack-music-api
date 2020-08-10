@@ -12,6 +12,7 @@ const logger = require('./helpers/logger');
 const spotify = require('./helpers/spotify');
 const serverMethods = require('./helpers/server-methods');
 const slack = require('./helpers/slack');
+const resetScript = require('./scripts/reset');
 
 require('./db');
 
@@ -79,7 +80,7 @@ app.post('/trigger', async (req, res) => {
     return res.status(code).send({ status, message });
   } catch (error) {
     const e = { message: error.message, stack: error.stack };
-    slack.sendErrorMessage(JSON.stringify(e));
+    slack.sendMonitorMessage(JSON.stringify(e));
     return res.send(JSON.stringify(e));
   }
 });
@@ -164,6 +165,36 @@ app.post('/track/data', async (req, res) => {
     });
   } catch (err) {
     return res.status(500).send({ message: 'An error occurred' });
+  }
+});
+
+app.post('/reset', async (req, res) => {
+  try {
+    const { resetToken } = req.body;
+
+    if (appConfig.resetToken !== resetToken) {
+      res.status(401).send({ message: 'You dey whine me?' });
+      return;
+    }
+
+    // Reponse is sent here
+    res.status(200).send({
+      status: true,
+      message: 'Resetting the playlist. Check #feed-music-api-monitors for results/errors.',
+    });
+
+    // Post-processing
+    slack.sendMonitorMessage('Resetting Playlists..');
+
+    const results = await resetScript.run();
+
+    slack.sendMonitorMessage(`Finished resetting playlists with status ${JSON.stringify(results)}`);
+
+    return;
+  } catch (err) {
+    // We aren't sending any 500 response because this is a post-process flow
+    logger.error(err);
+    slack.sendMonitorMessage(JSON.stringify(err));
   }
 });
 
