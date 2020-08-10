@@ -33,4 +33,7 @@ module.exports = {
   debug(msg) {
     return logger.log('debug', msg);
   },
+  warn(msg) {
+    return logger.log('warn', msg);
+  },
 };

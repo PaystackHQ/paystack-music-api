@@ -24,4 +24,5 @@ module.exports = {
     monitoringChannel: process.env.SLACK_MONITOR_CHANNEL,
   },
   debugMode: process.env.DEBUG === 'true',
+  sendPlaylistsToSlackChannel: process.env.SEND_PLAYLISTS_TO_SLACK === 'true',
 };
