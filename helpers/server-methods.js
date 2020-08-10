@@ -81,16 +81,20 @@ const trigger = async ({ day, month, year }) => {
     .findOneAndUpdate({ spotifyId: playlist.id }, { hex: dominantColor }, { upsert: true });
   logger.debug('Saved playlist color');
 
-  // create new cover art
-  const newCoverImage = await image.generateCoverImage({
-    color: dominantColor,
-    month: playlistMonth.format('MMMM'),
-    year: playlistMonth.format('YYYY'),
-  });
+  // This is necessary because Chromium is causing issues and we don't need the cover
+  // (for now)
+  if (config.app.setPlaylistCover) {
+    // create new cover art
+    const newCoverImage = await image.generateCoverImage({
+      color: dominantColor,
+      month: playlistMonth.format('MMMM'),
+      year: playlistMonth.format('YYYY'),
+    });
 
-  // attach album art to playlist
-  await spotify.setPlaylistCover(playlist.id, newCoverImage);
-  logger.debug('Set playlist cover');
+    // attach album art to playlist
+    await spotify.setPlaylistCover(playlist.id, newCoverImage);
+    logger.debug('Set playlist cover');
+  }
 
   if (config.sendPlaylistsToSlackChannel) {
     // send playlist to slack

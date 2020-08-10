@@ -4,6 +4,8 @@ module.exports = {
   app: {
     port: process.env.PORT,
     triggerUri: process.env.APP_TRIGGER_URI,
+    resetToken: process.env.APP_RESET_TOKEN,
+    setPlaylistCover: process.env.SET_PLAYLIST_COVER === 'true',
   },
   db: {
     uri: process.env.DB_URI,

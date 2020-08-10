@@ -1,3 +1,5 @@
+const moment = require('moment');
+
 /**
  * Returns an array with arrays of the given size.
  *
@@ -14,6 +16,38 @@ function chunkArray(myArray, chunkSize) {
   return results;
 }
 
+/**
+ * Gets the first day of the past x months
+ * @param {number} duration - number of months to backtrack
+ * @returns {Array} - e.g. [ { date: 01, month: 02, year: 2020 }, ... ]
+ */
+function fetchPastMonths(duration) {
+  const months = [];
+
+  const dateEnd = moment();
+  const dateStart = moment().subtract(duration, 'month');
+
+  while (dateEnd.diff(dateStart, 'months') >= 0) {
+    months.push({
+      day: 1, // we only need the first day
+      month: dateStart.month() + 1,
+      year: dateStart.year(),
+    });
+    dateStart.add(1, 'month');
+  }
+  return months;
+}
+
+/**
+ * Sleep in ms
+ * @param {number} durationInMs
+ */
+function sleep(durationInMs) {
+  return new Promise((r) => setTimeout(r, durationInMs));
+}
+
 module.exports = {
   chunkArray,
+  fetchPastMonths,
+  sleep,
 };

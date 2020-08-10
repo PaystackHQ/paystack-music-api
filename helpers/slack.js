@@ -114,7 +114,7 @@ module.exports = {
     };
   },
 
-  sendErrorMessage(message) {
+  sendMonitorMessage(message) {
     const channel = slackConfig.monitoringChannel;
 
     if (!channel) {
