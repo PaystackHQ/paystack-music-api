@@ -21,6 +21,7 @@ module.exports = {
     token: process.env.SLACK_TOKEN,
     sourceChannel: process.env.SLACK_SOURCE_CHANNEL,
     targetChannel: process.env.SLACK_TARGET_CHANNEL,
+    monitoringChannel: process.env.SLACK_MONITOR_CHANNEL,
   },
   debugMode: process.env.DEBUG === 'true',
 };
