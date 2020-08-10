@@ -114,6 +114,17 @@ module.exports = {
     };
   },
 
+  sendErrorMessage(message) {
+    const channel = slackConfig.monitorChannel;
+
+    if (!channel) {
+      logger.info('Slack monitor channel not set.');
+      return null;
+    }
+
+    return this.sendMessage(message, channel);
+  },
+
   sendMessage(message, channel = slackConfig.targetChannel) {
     const url = 'https://slack.com/api/chat.postMessage';
     const headers = {
