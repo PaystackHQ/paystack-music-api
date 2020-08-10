@@ -173,7 +173,10 @@ app.post('/reset', async (req, res) => {
     const { resetToken } = req.body;
 
     if (appConfig.resetToken !== resetToken) {
-      res.status(401).send({ message: 'You dey whine me?' });
+      res.status(401).send({
+        status: false,
+        message: 'You dey whine me?',
+      });
       return;
     }
 
