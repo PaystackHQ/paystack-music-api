@@ -1,7 +1,7 @@
 const winston = require('winston');
 const config = require('../config');
 
-const infoTransport = new winston.transports.Console({ level: 'info'});
+const infoTransport = new winston.transports.Console({ level: 'info' });
 
 const logger = winston.createLogger({
   format: winston.format.json(),
@@ -9,12 +9,12 @@ const logger = winston.createLogger({
     // - Write all logs with level `error` and below to `error.log`
     // - Write all logs with level `info` and below to console
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    infoTransport
+    infoTransport,
   ],
 });
 
 if (config.debugMode) {
-  // we don't need the info transport in debug mode, cause the debug transport handles 
+  // we don't need the info transport in debug mode, cause the debug transport handles
   // it
   logger.remove(infoTransport);
 
@@ -24,13 +24,13 @@ if (config.debugMode) {
 }
 
 module.exports = {
-    error: function(err) {
-        return logger.log('error', err);
-    },
-    info: function (msg) {
-        return logger.log('info', msg);
-    },
-    debug: function (msg) {
-        return logger.log('debug', msg);
-    }
-}
+  error(err) {
+    return logger.log('error', err);
+  },
+  info(msg) {
+    return logger.log('info', msg);
+  },
+  debug(msg) {
+    return logger.log('debug', msg);
+  },
+};
