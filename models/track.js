@@ -7,7 +7,9 @@ const trackSchema = new mongoose.Schema({
   track_url: String,
   preview_url: String,
   trackId: String,
-  contributors: [{type: mongoose.ObjectId, ref: 'Contributor'}],
+  isExplicit: Boolean,
+  contributors: [{ type: mongoose.ObjectId, ref: 'Contributor' }],
+  artists: [{ type: mongoose.ObjectId, ref: 'Artist' }],
   analytics: mongoose.Mixed,
 });
 const Track = mongoose.model('Track', trackSchema, 'tracks');
