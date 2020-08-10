@@ -11,6 +11,7 @@ const { app: appConfig } = require('./config');
 const logger = require('./helpers/logger');
 const spotify = require('./helpers/spotify');
 const serverMethods = require('./helpers/server-methods');
+const slack = require('./helpers/slack');
 
 require('./db');
 

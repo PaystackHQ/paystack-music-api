@@ -2,6 +2,7 @@ const axios = require('axios');
 const { slack: slackConfig, spotify: spotifyConfig } = require('../config');
 const Contributor = require('../models/contributor');
 const spotify = require('./spotify');
+const logger = require('./logger');
 
 module.exports = {
   /**

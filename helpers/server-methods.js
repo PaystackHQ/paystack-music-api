@@ -1,4 +1,5 @@
 const moment = require('moment');
+const config = require('../config');
 const slack = require('./slack');
 const spotify = require('./spotify');
 const color = require('./color');
@@ -91,9 +92,11 @@ const trigger = async ({ day, month, year }) => {
   await spotify.setPlaylistCover(playlist.id, newCoverImage);
   logger.debug('Set playlist cover');
 
-  // send playlist to slack
-  await slack.sendMessage(playlist.external_urls.spotify);
-  await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
+  if (config.sendPlaylistsToSlackChannel) {
+    // send playlist to slack
+    await slack.sendMessage(playlist.external_urls.spotify);
+    await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
+  }
 
   // finish
   return {
