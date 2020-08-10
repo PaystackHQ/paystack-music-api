@@ -266,6 +266,7 @@ const saveTracks = async (tracksData, playlist) => {
       trackId: track.id,
       contributors: contributorIds,
       artists: artistIds,
+      isExplicit: track.explicit,
     };
   }));
 
