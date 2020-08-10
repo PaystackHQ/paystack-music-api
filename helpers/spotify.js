@@ -163,7 +163,7 @@ const getSpotifyUrlParts = (trackUrl) => {
   const [, , , mediaType, trackId] = trackUrl.split('?')[0].split('/');
   return {
     mediaType,
-    trackId
+    trackId,
   };
 };
 
@@ -223,14 +223,17 @@ const savePlaylist = async (playlistData, contributors) => {
 };
 
 const saveArtists = async (trackDetails) => {
-  const artists = trackDetails.map((track) => track.artists);
+  const artists = trackDetails.map((track) => track.artists).flat();
   const artistDocs = artists.map((artist) => ({
     name: artist.name,
     url: artist.href,
     spotifyId: artist.id,
-  })).flat();
-
-  await Artist.insertMany(artistDocs);
+  }));
+  try {
+    await Artist.insertMany(artistDocs, { ordered: false });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 /**
