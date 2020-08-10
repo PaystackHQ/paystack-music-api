@@ -355,6 +355,7 @@ const findPlaylist = async (playlistId) => {
         {
           path: 'contributors',
           model: 'Contributor',
+          select: contributorFields,
         },
         {
           path: 'artists',
