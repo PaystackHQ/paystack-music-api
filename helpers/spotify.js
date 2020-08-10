@@ -243,7 +243,8 @@ const saveArtists = async (trackDetails) => {
  * @returns {Promise<>}
  */
 const saveTracks = async (tracksData, playlist) => {
-  const trackDetails = await getTrackData(tracksData.map((track) => track.id));
+  const spotifyTrackIds = tracksData.map((track) => track.id);
+  const trackDetails = await getTrackData(spotifyTrackIds);
 
   // Save artists
   await saveArtists(trackDetails);
