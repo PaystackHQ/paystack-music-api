@@ -236,6 +236,7 @@ const saveTracks = async (tracksData, playlist) => {
     };
   }));
   const tracks = await Track.insertMany(tracksDocs);
+  // eslint-disable-next-line no-underscore-dangle
   const trackIds = tracks.map((t) => t._id);
   playlist.tracks.push(...trackIds);
   await playlist.save();
@@ -247,11 +248,13 @@ const saveTracks = async (tracksData, playlist) => {
  * @returns {Promise<>}
  */
 const getAudioFeaturesForTracks = async (tracks) => {
-  const trackIds = tracks.map(t => t.id);
+  const trackIds = tracks.map((t) => t.id);
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
-  const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getAudioFeaturesForTracks(chunk));
+  const trackDataPromises = trackIdChunks.map((chunk) => (
+    spotifyApi.getAudioFeaturesForTracks(chunk)
+  ));
 
   const responses = await Promise.all(trackDataPromises);
   responses.forEach((response) => {
@@ -266,10 +269,10 @@ const getAudioFeaturesForTracks = async (tracks) => {
     return Track.findOneAndUpdate({ trackId }, { analytics: sanitisedTrack }, { upsert: true });
   });
   return Promise.all(trackUpdatePromises);
-}
+};
 
-const getPreviewUrlForTracks = async(tracks) => {
-  const trackIds = tracks.map(t => t.id);
+const getPreviewUrlForTracks = async (tracks) => {
+  const trackIds = tracks.map((t) => t.id);
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
@@ -277,15 +280,15 @@ const getPreviewUrlForTracks = async(tracks) => {
 
   const responses = await Promise.all(trackDataPromises);
   responses.forEach((response) => {
-    const { tracks } = response.body;
-    Array.prototype.push.apply(trackDataArray, tracks);
+    const { tracks: fetchedTracks } = response.body;
+    Array.prototype.push.apply(trackDataArray, fetchedTracks);
   });
 
-  const trackUpdatePromises = trackDataArray.filter((track) => !!track).map((track) => {
-    return Track.findOneAndUpdate({ trackId: track.id }, { preview_url: track.preview_url }, { upsert: true });
-  });
+  const trackUpdatePromises = trackDataArray.filter((track) => !!track)
+    .map((track) => Track.findOneAndUpdate({ trackId: track.id },
+      { preview_url: track.preview_url }, { upsert: true }));
   return Promise.all(trackUpdatePromises);
-}
+};
 
 /**
  * @description Returns a playlist
@@ -300,7 +303,9 @@ const findPlaylist = async (playlistId) => {
     profile_image: 1,
   };
   return Playlist.findById(playlistId)
-    .select({ name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1 })
+    .select({
+      name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1,
+    })
     .populate({
       path: 'tracks',
       select: {
@@ -317,21 +322,22 @@ const findPlaylist = async (playlistId) => {
         model: 'Contributor',
         select: contributorFields,
       },
-  })
-  .populate({
-    path: 'contributors',
-    model: 'Contributor',
-    select: contributorFields,
-  }).exec();
-}
+    })
+    .populate({
+      path: 'contributors',
+      model: 'Contributor',
+      select: contributorFields,
+    })
+    .exec();
+};
 
 /**
  * @description returns an array of playlists
  * @returns {Promise<Array>} The playlist data for multiple playlists
  */
-const findAllPlaylists = async () => {
-  return Playlist.find({}, { name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1 }, {}).sort({ date_added: -1 });
-}
+const findAllPlaylists = async () => Playlist.find({}, {
+  name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1,
+}, {}).sort({ date_added: -1 });
 
 module.exports = {
   createAuthURL,

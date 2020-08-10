@@ -103,8 +103,7 @@ app.post('/trigger', async (req, res) => {
     logger.debug('Fetched channel history');
 
     if (!(history.messages && history.messages.length)) {
-      res.send('Could not find any messages. Please check the channel and try again.');
-      return;
+      return res.send('Could not find any messages. Please check the channel and try again.');
     }
 
     const spotifyMessages = slack.filterSpotifyMessages(history.messages);
@@ -143,7 +142,8 @@ app.post('/trigger', async (req, res) => {
     const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
 
     // save the playlist color
-    await Playlist.findOneAndUpdate({ spotifyId: playlist.id }, { hex: dominantColor }, { upsert: true });
+    await Playlist
+      .findOneAndUpdate({ spotifyId: playlist.id }, { hex: dominantColor }, { upsert: true });
     logger.debug('Saved playlist color');
 
     // create new cover art

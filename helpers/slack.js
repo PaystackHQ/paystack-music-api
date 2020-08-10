@@ -2,7 +2,6 @@ const axios = require('axios');
 const { slack: slackConfig, spotify: spotifyConfig } = require('../config');
 const Contributor = require('../models/contributor');
 const spotify = require('./spotify');
-const logger = require('./logger');
 
 module.exports = {
   /**
@@ -142,7 +141,7 @@ module.exports = {
         {
           name: data.user.profile.real_name,
           about: data.user.profile.title,
-          profile_image: data.user.profile.image_original,
+          profile_image: data.user.profile.image_192,
           slackId: user,
         },
         { new: true, upsert: true },
