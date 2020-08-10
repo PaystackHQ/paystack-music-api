@@ -115,10 +115,10 @@ module.exports = {
   },
 
   sendErrorMessage(message) {
-    const channel = slackConfig.monitorChannel;
+    const channel = slackConfig.monitoringChannel;
 
     if (!channel) {
-      logger.info('Slack monitor channel not set.');
+      logger.warn('Slack monitor channel not set.');
       return null;
     }
 
