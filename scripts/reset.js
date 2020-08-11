@@ -22,7 +22,7 @@ const trigger = async () => {
     const { day, month, year } = pastMonth;
     const response = await serverMethods.trigger({ day, month, year });
     responses.push(response);
-    await util.sleep(500);
+    await util.sleep(800);
   }
   return responses;
 };
