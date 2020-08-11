@@ -231,8 +231,8 @@ const saveArtists = async (trackDetails) => {
   }));
   try {
     await Artist.insertMany(artistDocs, { ordered: false });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    logger.error(err);
   }
 };
 
