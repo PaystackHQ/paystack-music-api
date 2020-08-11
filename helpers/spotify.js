@@ -260,7 +260,7 @@ const saveTracks = async (tracksData, playlist) => {
 
     return {
       service: track.service,
-      title: track.title,
+      title: track.name,
       track_url: track.link,
       trackId: track.id,
       contributors: contributorIds,
