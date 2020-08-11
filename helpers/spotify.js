@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 const SpotifyWebApi = require('spotify-web-api-node');
 const axios = require('axios');
 const moment = require('moment');
@@ -208,7 +209,6 @@ async function getTrackData(trackIds) {
  * @returns {Promise<>}
  */
 const savePlaylist = async (playlistData, contributors) => {
-  // eslint-disable-next-line no-underscore-dangle
   const contributorIds = contributors.map((c) => c._id);
   const playlist = await Playlist.create({
     name: playlistData.name,
@@ -252,7 +252,6 @@ const saveTracks = async (tracksData, playlist) => {
   const tracksDocs = await Promise.all(trackDetails.map(async (track) => {
     const slackData = tracksData.find((t) => t.id === track.id);
     const contributors = await Contributor.find({ slackId: { $in: slackData.users } });
-    // eslint-disable-next-line no-underscore-dangle
     const contributorIds = contributors.map((c) => c._id);
 
     const spotifyArtistIds = track.artists.map((artist) => artist.id);
@@ -271,7 +270,6 @@ const saveTracks = async (tracksData, playlist) => {
   }));
 
   const tracks = await Track.insertMany(tracksDocs);
-  // eslint-disable-next-line no-underscore-dangle
   const trackIds = tracks.map((t) => t._id);
   playlist.tracks.push(...trackIds);
   await playlist.save();
@@ -326,6 +324,23 @@ const getPreviewUrlForTracks = async (tracks) => {
 };
 
 /**
+ * @description sanitizes the response from the fetch single playlist endpoint
+ * @param {Object} playlist A Playlist object
+ * @returns {Object} A sanitized playlist object with artists as a comma separated list
+ */
+const sanitizeGetSinglePlaylistResponse = (playlist) => {
+  const tracks = playlist.tracks
+    .reduce((acc, cur) => {
+      const trackDoc = cur._doc;
+      const artistNames = [...new Set(trackDoc.artists.map((each) => each.name))].join(', ');
+      return [...acc,
+        { ...trackDoc, artists: artistNames },
+      ];
+    }, []);
+  return { ...playlist, tracks };
+};
+
+/**
  * @description Returns a playlist
  * @param {String} playlistId ID of the playlist we want
  * @returns {Promise<Object>} The playlist data
@@ -337,7 +352,7 @@ const findPlaylist = async (playlistId) => {
     about: 1,
     profile_image: 1,
   };
-  return Playlist.findById(playlistId)
+  const playlist = await Playlist.findById(playlistId)
     .select({
       name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1,
     })
@@ -370,6 +385,7 @@ const findPlaylist = async (playlistId) => {
       select: contributorFields,
     })
     .exec();
+  return sanitizeGetSinglePlaylistResponse(playlist._doc);
 };
 
 /**
