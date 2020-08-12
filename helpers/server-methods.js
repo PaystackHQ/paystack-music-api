@@ -104,7 +104,7 @@ const trigger = async ({ day, month, year }) => {
 
   // finish
   return {
-    status: false,
+    status: true,
     code: 200,
     message: `${playlistName} playlist, check spotify (or your Slack DMs if you're Kachi :))`,
   };
