@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
-const { db: { uri: databaseURI } } = require('./config');
+const { db: { uri: databaseURI } } = require('./index');
+const logger = require('../helpers/logger');
 
 mongoose.connect(databaseURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const db = mongoose.connection;
 db.on('open', () => {
-  console.log('Database Connected');
+  logger.info('Database Connected');
 })
   .on('error', (err) => {
-    console.log(`Connection error: ${err.message}`);
+    logger.error(`Connection error: ${err.message}`);
   });

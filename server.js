@@ -14,7 +14,7 @@ const indexRouter = require('./routes/index');
 const playlistRouter = require('./routes/playlists');
 const trackRouter = require('./routes/track');
 
-require('./db');
+require('./config/db');
 
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
