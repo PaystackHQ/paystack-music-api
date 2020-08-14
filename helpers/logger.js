@@ -25,7 +25,7 @@ if (config.debugMode) {
 
 module.exports = {
   error(err) {
-    return logger.log('error', err);
+    return logger.log('error', err.stack || err.message);
   },
   info(msg) {
     return logger.log('info', msg);
