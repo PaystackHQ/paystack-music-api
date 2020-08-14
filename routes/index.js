@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express();
 
-const controllers = require('../controllers/index');
+const controllers = require('../controllers');
 
 router.get('/', controllers.index);
 
@@ -19,7 +19,6 @@ router.get('/covers', controllers.covers);
 
 router.post('/reset', controllers.reset);
 
-// eslint-disable-next-line no-unused-vars
 router.post('/webhook', controllers.webhook);
 
 module.exports = router;
