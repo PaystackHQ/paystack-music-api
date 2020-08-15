@@ -4,6 +4,7 @@
 // init project
 const express = require('express');
 const bodyParser = require('body-parser');
+const helmet = require('helmet');
 
 const app = express();
 const path = require('path');
@@ -19,6 +20,7 @@ require('./config/db');
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(helmet());
 
 app.use('/', indexRouter);
 app.use('/playlists', playlistRouter);
