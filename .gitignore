@@ -4,3 +4,5 @@ node_modules/
 db.json
 .idea/
 *.log
+coverage
+.nyc_output

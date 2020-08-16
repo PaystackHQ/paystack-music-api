@@ -1,7 +1,13 @@
 const handleErrorResponse = (error) => ({
-  status: false, message: error?.details[0]?.message,
+  status: false, message: error && error.details[0] && error.details[0].message,
 });
 
+/**
+ * @description returns the data to be validated for a request
+ * @param {Object} req The Express Request Object
+ * @param {String} bodyParamsOrQuery determines what part of the request should be validated
+ * @returns {Object}
+ */
 const getDataToValidate = (req, bodyParamsOrQuery) => {
   const { body, query, params } = req;
   if (bodyParamsOrQuery === 'query') {
