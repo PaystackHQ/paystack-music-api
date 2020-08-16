@@ -8,9 +8,6 @@ const logger = require('./logger');
 const Playlist = require('../models/playlist');
 
 const trigger = async ({ day, month, year }) => {
-  if (!(day && month && year)) {
-    return { status: false, code: 400, message: 'Parameters "day", "month" and "year" are required' };
-  }
   await spotify.performAuthentication();
 
   const dateMonth = Number(month) < 10 ? `0${Number(month)}` : month;

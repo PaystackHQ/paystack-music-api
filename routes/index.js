@@ -1,4 +1,6 @@
 const express = require('express');
+const { validate: validateRequest } = require('../validation/validate');
+const validationSchemas = require('../validation/schema');
 
 const router = express();
 
@@ -8,16 +10,16 @@ router.get('/', controllers.index);
 
 router.get('/authorize', controllers.authorize);
 
-router.get('/callback', controllers.callback);
+router.get('/callback', validateRequest(validationSchemas.callbackQuery, 'query'), controllers.callback);
 
-router.post('/trigger', controllers.trigger);
+router.post('/trigger', validateRequest(validationSchemas.trigger), controllers.trigger);
 
 // TODO:: This needs to be changed to /playlists/:id for it to live in the playlists router.
-router.get('/playlist/:id', controllers.getPlaylistByID);
+router.get('/playlist/:id', validateRequest(validationSchemas.getPlaylistByIdParams, 'params'), controllers.getPlaylistByID);
 
 router.get('/covers', controllers.covers);
 
-router.post('/reset', controllers.reset);
+router.post('/reset', validateRequest(validationSchemas.resetBody), controllers.reset);
 
 router.post('/webhook', controllers.webhook);
 
