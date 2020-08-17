@@ -3,9 +3,12 @@ jobs:
   build:
     docker: 
       - image: circleci/node:12.0.0
+      - image: circleci/mongo:4.4
+        environment:
+          DB_URI: mongodb://root:root@localhost:27017
     steps:
       - checkout:
-          path: ~
+          path: "~"
       - run: 
           "name": "Install dependencies"
           "command":  "npm install"
