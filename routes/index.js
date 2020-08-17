@@ -2,7 +2,7 @@ const express = require('express');
 const { validate: validateRequest } = require('../validation/validate');
 const validationSchemas = require('../validation/schema');
 
-const router = express();
+const router = express.Router();
 
 const controllers = require('../controllers');
 
