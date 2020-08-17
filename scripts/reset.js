@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 // Fetches all the playlists, contributors, artists, tracks from scratch.
 
 const Artist = require('../models/artist');

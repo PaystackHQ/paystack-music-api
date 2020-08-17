@@ -1,0 +1,22 @@
+version: 2.1
+jobs:
+  build:
+    docker: 
+      - image: circleci/node:12.0.0
+        environment:
+          DB_URI: ${DB_URI}
+      - image: circleci/mongo:4.4
+        environment:
+          MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
+          MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+    steps:
+      - checkout
+      - run: 
+          "name": "Install dependencies"
+          "command":  "npm install"
+      - run:
+          name: "Lint files"
+          command: npm run lint
+      - run:
+          "name": "Run tests"
+          "command": "npm test"
