@@ -6,12 +6,6 @@ module.exports = {
   getTrackAudioFeatures: async (req, res) => {
     try {
       const { id: trackId } = req.params;
-      if (!trackId) {
-        return res.status(400).send({
-          status: false,
-          message: '"track_id" is required',
-        });
-      }
 
       await spotify.performAuthentication();
       const trackFeatures = await spotify.getAudioFeaturesForTrack(trackId);
@@ -28,12 +22,6 @@ module.exports = {
   getTrackData: async (req, res) => {
     try {
       const { track_ids: ids } = req.body;
-      if (!ids && !Array.isArray(ids)) {
-        return res.status(400).send({
-          status: false,
-          message: '"track_ids" is required',
-        });
-      }
 
       const result = await spotify.performAuthentication();
       if (result && result.code === 401) {

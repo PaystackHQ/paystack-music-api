@@ -30,3 +30,5 @@ app.use('/track', trackRouter);
 const listener = app.listen(appConfig.port, () => {
   logger.info(`Your app is listening on port ${listener.address().port}`);
 });
+
+module.exports = app;

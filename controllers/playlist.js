@@ -20,7 +20,7 @@ module.exports = {
       });
     } catch (err) {
       logger.error(err);
-      return res.status(500).send({ message: 'An error occurred' });
+      return res.status(500).send({ status: false, message: 'An error occurred' });
     }
   },
 
@@ -32,7 +32,7 @@ module.exports = {
         data: playlists,
       });
     } catch (err) {
-      return res.status(500).send({ message: 'An error occurred' });
+      return res.status(500).send({ status: false, message: 'An error occurred' });
     }
   },
 };
