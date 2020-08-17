@@ -21,6 +21,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(helmet());
+app.disable('x-powered-by');
 
 app.use('/', indexRouter);
 app.use('/playlists', playlistRouter);
