@@ -7,8 +7,7 @@ jobs:
         environment:
           DB_URI: mongodb://root:root@localhost:27017
     steps:
-      - checkout:
-          path: "~"
+      - checkout
       - run: 
           "name": "Install dependencies"
           "command":  "npm install"
