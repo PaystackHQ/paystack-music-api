@@ -73,7 +73,10 @@ const performAuthentication = async (code = '') => {
   let accessToken = authToken ? decryptToken(authToken.access_token) : '';
   const refreshToken = authToken ? decryptToken(authToken.refresh_token) : '';
 
-  if (!authToken && code) {
+  if (!authToken) {
+    if (!code) {
+      return { status: false, message: 'Call "/authorize" my g', code: 401 };
+    }
     const newCredentials = await getTokensFromAPI(code);
     const encryptedAccessToken = encryptToken(newCredentials.accessToken);
     const encryptedRefreshToken = encryptToken(newCredentials.refreshToken);
@@ -82,7 +85,7 @@ const performAuthentication = async (code = '') => {
       accessToken: encryptedAccessToken, refreshToken: encryptedRefreshToken,
     });
     setTokensOnAPIObject(newCredentials);
-    return newCredentials;
+    return { status: true, data: newCredentials, code: 200 };
   }
 
   if (moment.utc().diff(moment(authToken.expires_at), 'hours') >= TOKEN_DURATION_IN_HOURS) {
@@ -101,12 +104,11 @@ const performAuthentication = async (code = '') => {
     refreshToken,
   };
   setTokensOnAPIObject(tokens);
-  return tokens;
+  return { status: true, data: tokens, code: 200 };
 };
 
 const createPlaylist = (name) => {
   const { userId } = spotifyConfig;
-  logger.debug(spotifyApi.getAccessToken());
   return spotifyApi.createPlaylist(userId, name, { public: true })
     .then((response) => response.body);
 };
@@ -117,7 +119,7 @@ const getPlaylist = (id) => spotifyApi.getPlaylist(id)
   .then((response) => response.body);
 
 const setPlaylistCover = async (id, image) => {
-  const { accessToken } = await performAuthentication();
+  const { data: { accessToken } } = await performAuthentication();
   const url = `https://api.spotify.com/v1/playlists/${id}/images`;
   const headers = {
     Authorization: `Bearer ${accessToken}`,
@@ -396,6 +398,13 @@ const findAllPlaylists = async () => Playlist.find({}, {
   name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1,
 }, {}).sort({ date_added: -1 });
 
+/**
+ * @description generate playlist name from formatted month
+ * @param {Number} playlistMonth
+ * @returns {String} the playlist name
+ */
+const generatePlaylistName = (playlistMonth) => playlistMonth.format('MMMM YYYY');
+
 module.exports = {
   createAuthURL,
   performAuthentication,
@@ -413,4 +422,5 @@ module.exports = {
   getPreviewUrlForTracks,
   findPlaylist,
   findAllPlaylists,
+  generatePlaylistName,
 };
