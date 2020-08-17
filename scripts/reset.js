@@ -6,7 +6,6 @@ const Contributor = require('../models/contributor');
 const Playlist = require('../models/playlist');
 const serverMethods = require('../helpers/server-methods');
 const util = require('../helpers/util');
-const logger = require('../helpers/logger');
 
 const deletionQueries = [
   Artist.deleteMany({}),
@@ -29,13 +28,8 @@ const trigger = async () => {
 };
 
 const run = async () => {
-  try {
-    await Promise.all(deletionQueries);
-    return trigger();
-  } catch (err) {
-    logger.error(err);
-    return { status: false, message: 'We broke something' };
-  }
+  await Promise.all(deletionQueries);
+  return trigger();
 };
 
 module.exports = {
