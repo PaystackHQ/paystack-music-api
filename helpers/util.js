@@ -1,4 +1,5 @@
 const moment = require('moment');
+const logger = require('./logger');
 
 /**
  * Returns an array with arrays of the given size.
@@ -46,8 +47,23 @@ function sleep(durationInMs) {
   return new Promise((r) => setTimeout(r, durationInMs));
 }
 
+/**
+ *
+ * capture app termination / restart events
+ * To be called when process is restarted or terminated
+ * @param {string} msg
+ * @param {string} cb
+ */
+function gracefulShutdown(conn, msg, cb) {
+  conn.close(() => {
+    logger.info(`Mongoose disconnected through ${msg}`);
+    cb();
+  });
+}
+
 module.exports = {
   chunkArray,
   fetchPastMonths,
   sleep,
+  gracefulShutdown,
 };
