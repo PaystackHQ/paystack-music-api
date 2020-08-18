@@ -10,6 +10,7 @@ const trackSchema = new mongoose.Schema({
   isExplicit: Boolean,
   contributors: [{ type: mongoose.ObjectId, ref: 'Contributor' }],
   artists: [{ type: mongoose.ObjectId, ref: 'Artist' }],
+  artist_names: String,
   analytics: mongoose.Mixed,
 });
 const Track = mongoose.model('Track', trackSchema, 'tracks');

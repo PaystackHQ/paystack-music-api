@@ -261,10 +261,11 @@ const saveTracks = async (tracksData, playlist) => {
     return {
       service: track.service,
       title: track.name,
-      track_url: track.link,
+      track_url: track.url,
       trackId: track.id,
       contributors: contributorIds,
       artists: artistIds,
+      artist_names: track.artist_names.join(', '),
       isExplicit: track.explicit,
     };
   }));
@@ -366,6 +367,7 @@ const findPlaylist = async (playlistId) => {
         preview_url: 1,
         trackId: 1,
         analytics: 1,
+        artist_names: 1,
       },
       populate: [
         {
