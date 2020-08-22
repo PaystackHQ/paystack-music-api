@@ -4,18 +4,19 @@ const slack = require('./slack');
 const spotify = require('./spotify');
 const color = require('./color');
 const image = require('./image');
-const logger = require('./logger');
+const util = require('./util');
 const Playlist = require('../models/playlist');
 
 const trigger = async ({ day, month, year }) => {
-  await spotify.performAuthentication();
+  const { status, message, code } = await spotify.performAuthentication();
+  if (!status) {
+    return { status, message, code };
+  }
 
-  const dateMonth = Number(month) < 10 ? `0${Number(month)}` : month;
-  const dateDay = Number(day) < 10 ? `0${Number(day)}` : day;
-
-  const date = `${year}-${dateMonth}-${dateDay}`;
+  const date = util.getFormattedDate({ day, month, year });
   const playlistMonth = moment(date).subtract(1, 'months');
-  const playlistName = playlistMonth.format('MMMM YYYY');
+  const playlistName = spotify.generatePlaylistName(playlistMonth);
+
   // Search for an existing playlist before continueing the playlist creation process.
   // A case insensitive search is used for completeness.
   // Please see https://github.com/PaystackHQ/paystack-music-api/pull/15#discussion_r467569438
@@ -29,7 +30,6 @@ const trigger = async ({ day, month, year }) => {
     };
   }
   const history = await slack.fetchChannelHistory(playlistMonth);
-  logger.debug('Fetched channel history');
 
   if (!(history.messages && history.messages.length)) {
     return {
@@ -41,19 +41,18 @@ const trigger = async ({ day, month, year }) => {
 
   const spotifyMessages = slack.filterSpotifyMessages(history.messages);
   const tracks = slack.filterSpotifyTracks(spotifyMessages);
-  const contributors = await slack.saveContributors(tracks);
-  logger.debug('Saved contributors');
-  // create new playlist
-  let playlist = await spotify.createPlaylist(playlistName);
+  const [contributors, playlist] = await Promise.all([
+    slack.saveContributors(tracks),
+    spotify.createPlaylist(playlistName),
+  ]);
   playlist.date_added = playlistMonth.utc().toDate();
-  logger.debug('Created spotify playlist');
   const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
-  logger.debug('Saved spotify playlist');
-  await spotify.saveTracks(tracks, savedPlaylist);
-  logger.debug('Saved tracks');
-  await spotify.getAudioFeaturesForTracks(tracks);
-  await spotify.getPreviewUrlForTracks(tracks);
-  logger.debug('Fetched audio features for tracks');
+
+  await Promise.all([
+    spotify.saveTracks(tracks, savedPlaylist),
+    spotify.getAudioFeaturesForTracks(tracks),
+    spotify.getPreviewUrlForTracks(tracks),
+  ]);
 
   // and songs to playlist
   const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
@@ -66,17 +65,15 @@ const trigger = async ({ day, month, year }) => {
     await spotify.addTracksToPlaylist(playlist.id, batch);
   }
   // get playlist cover art
-  playlist = await spotify.getPlaylist(playlist.id);
-  logger.debug('Fetched playlist');
-  const coverImageUrl = playlist.images[0].url;
+  const fetchedPlaylist = await spotify.getPlaylist(playlist.id);
+  const [{ url: coverImageUrl }] = fetchedPlaylist.images;
 
   // pick color from current cover art
   const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
 
   // save the playlist color
   await Playlist
-    .findOneAndUpdate({ spotifyId: playlist.id }, { hex: dominantColor }, { upsert: true });
-  logger.debug('Saved playlist color');
+    .findOneAndUpdate({ spotifyId: fetchedPlaylist.id }, { hex: dominantColor }, { upsert: true });
 
   // This is necessary because Chromium is causing issues and we don't need the cover
   // (for now)
@@ -89,13 +86,12 @@ const trigger = async ({ day, month, year }) => {
     });
 
     // attach album art to playlist
-    await spotify.setPlaylistCover(playlist.id, newCoverImage);
-    logger.debug('Set playlist cover');
+    await spotify.setPlaylistCover(fetchedPlaylist.id, newCoverImage);
   }
 
   if (config.sendPlaylistsToSlackChannel) {
     // send playlist to slack
-    await slack.sendMessage(playlist.external_urls.spotify);
+    await slack.sendMessage(fetchedPlaylist.external_urls.spotify);
     await slack.sendMessage(`There were ${history.messages.length} messages in the music channel for ${playlistMonth.format('MMMM')} ${playlistMonth.format('YYYY')}`);
   }
 

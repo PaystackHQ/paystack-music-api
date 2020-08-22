@@ -13,25 +13,36 @@ const Track = require('../models/track');
 const Contributor = require('../models/contributor');
 const logger = require('./logger');
 
-const spotifyApi = new SpotifyWebApi({
-  clientId: spotifyConfig.clientId,
-  clientSecret: spotifyConfig.clientSecret,
-  redirectUri: spotifyConfig.redirectUri,
-});
+const spotifyApi = (() => {
+  let instance = null;
+  return {
+    getInstance: () => {
+      if (!instance) {
+        instance = new SpotifyWebApi({
+          clientId: spotifyConfig.clientId,
+          clientSecret: spotifyConfig.clientSecret,
+          redirectUri: spotifyConfig.redirectUri,
+        });
+      }
+      return instance;
+    },
+  };
+})();
 
 const scopes = ['playlist-modify-public', 'ugc-image-upload'];
 const TOKEN_DURATION_IN_HOURS = 1;
 const encryptionSecret = spotifyConfig.tokenSecret;
 
-const createAuthURL = () => spotifyApi.createAuthorizeURL(scopes);
+const createAuthURL = () => spotifyApi.getInstance().createAuthorizeURL(scopes);
 
 const setTokensOnAPIObject = (params) => {
-  spotifyApi.setAccessToken(params.accessToken);
-  spotifyApi.setRefreshToken(params.refreshToken);
+  const spotifyApiInstance = spotifyApi.getInstance();
+  spotifyApiInstance.setAccessToken(params.accessToken);
+  spotifyApiInstance.setRefreshToken(params.refreshToken);
 };
 
 const setAccessTokenOnAPIObject = (token) => {
-  spotifyApi.setAccessToken(token);
+  spotifyApi.getInstance().setAccessToken(token);
 };
 
 const encryptToken = (token) => {
@@ -45,7 +56,7 @@ const decryptToken = (token) => {
   return decryptedToken;
 };
 
-const getTokensFromAPI = async (code) => spotifyApi.authorizationCodeGrant(code)
+const getTokensFromAPI = async (code) => spotifyApi.getInstance().authorizationCodeGrant(code)
   .then((response) => ({
     accessToken: response.body.access_token,
     refreshToken: response.body.refresh_token,
@@ -65,7 +76,7 @@ const saveTokensToDB = async (params) => {
   }
 };
 
-const refreshAccessTokenFromAPI = () => spotifyApi.refreshAccessToken()
+const refreshAccessTokenFromAPI = () => spotifyApi.getInstance().refreshAccessToken()
   .then((response) => response.body.access_token);
 
 const performAuthentication = async (code = '') => {
@@ -73,7 +84,10 @@ const performAuthentication = async (code = '') => {
   let accessToken = authToken ? decryptToken(authToken.access_token) : '';
   const refreshToken = authToken ? decryptToken(authToken.refresh_token) : '';
 
-  if (!authToken && code) {
+  if (!authToken) {
+    if (!code) {
+      return { status: false, message: 'Call "/authorize" my g', code: 401 };
+    }
     const newCredentials = await getTokensFromAPI(code);
     const encryptedAccessToken = encryptToken(newCredentials.accessToken);
     const encryptedRefreshToken = encryptToken(newCredentials.refreshToken);
@@ -82,11 +96,13 @@ const performAuthentication = async (code = '') => {
       accessToken: encryptedAccessToken, refreshToken: encryptedRefreshToken,
     });
     setTokensOnAPIObject(newCredentials);
-    return newCredentials;
+    return {
+      status: true, message: 'Authentication successful: New tokens generated', data: newCredentials, code: 200,
+    };
   }
 
   if (moment.utc().diff(moment(authToken.expires_at), 'hours') >= TOKEN_DURATION_IN_HOURS) {
-    spotifyApi.setRefreshToken(refreshToken);
+    spotifyApi.getInstance().setRefreshToken(refreshToken);
     accessToken = await refreshAccessTokenFromAPI();
     const encryptedAccessToken = encryptToken(accessToken);
     const encryptedRefreshToken = encryptToken(refreshToken);
@@ -101,23 +117,26 @@ const performAuthentication = async (code = '') => {
     refreshToken,
   };
   setTokensOnAPIObject(tokens);
-  return tokens;
+  return {
+    status: true, message: 'Authentication successful', data: tokens, code: 200,
+  };
 };
 
 const createPlaylist = (name) => {
   const { userId } = spotifyConfig;
-  logger.debug(spotifyApi.getAccessToken());
-  return spotifyApi.createPlaylist(userId, name, { public: true })
+  return spotifyApi.getInstance().createPlaylist(userId, name, { public: true })
     .then((response) => response.body);
 };
 
-const addTracksToPlaylist = (id, tracks) => spotifyApi.addTracksToPlaylist(id, tracks);
+const addTracksToPlaylist = (id, tracks) => (
+  spotifyApi.getInstance().addTracksToPlaylist(id, tracks)
+);
 
-const getPlaylist = (id) => spotifyApi.getPlaylist(id)
+const getPlaylist = (id) => spotifyApi.getInstance().getPlaylist(id)
   .then((response) => response.body);
 
 const setPlaylistCover = async (id, image) => {
-  const { accessToken } = await performAuthentication();
+  const { data: { accessToken } } = await performAuthentication();
   const url = `https://api.spotify.com/v1/playlists/${id}/images`;
   const headers = {
     Authorization: `Bearer ${accessToken}`,
@@ -143,8 +162,10 @@ const sanitizeGetAudioFeaturesForTrackResponse = (data) => {
  * @param {String} tracks A single track URL (string)
  * @returns {Promise<Object>} The audio features for a track
  */
-const getAudioFeaturesForTrack = (trackID) => spotifyApi.getAudioFeaturesForTrack(trackID)
-  .then((response) => sanitizeGetAudioFeaturesForTrackResponse(response.body));
+const getAudioFeaturesForTrack = (trackID) => (
+  spotifyApi.getInstance().getAudioFeaturesForTrack(trackID)
+    .then((response) => sanitizeGetAudioFeaturesForTrackResponse(response.body))
+);
 
 /**
  * @description confirms that a URL is a Spotify URL
@@ -181,7 +202,7 @@ async function getTrackData(trackIds) {
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
-  const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getTracks(chunk));
+  const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getInstance().getTracks(chunk));
 
   const responses = await Promise.all(trackDataPromises);
   responses.forEach((response) => {
@@ -287,7 +308,7 @@ const getAudioFeaturesForTracks = async (tracks) => {
   const trackDataArray = [];
 
   const trackDataPromises = trackIdChunks.map((chunk) => (
-    spotifyApi.getAudioFeaturesForTracks(chunk)
+    spotifyApi.getInstance().getAudioFeaturesForTracks(chunk)
   ));
 
   const responses = await Promise.all(trackDataPromises);
@@ -310,7 +331,7 @@ const getPreviewUrlForTracks = async (tracks) => {
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
-  const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getTracks(chunk));
+  const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getInstance().getTracks(chunk));
 
   const responses = await Promise.all(trackDataPromises);
   responses.forEach((response) => {
@@ -398,6 +419,13 @@ const findAllPlaylists = async () => Playlist.find({}, {
   name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1,
 }, {}).sort({ date_added: -1 });
 
+/**
+ * @description generate playlist name from formatted month
+ * @param {Number} playlistMonth
+ * @returns {String} the playlist name
+ */
+const generatePlaylistName = (playlistMonth) => playlistMonth.format('MMMM YYYY');
+
 module.exports = {
   createAuthURL,
   performAuthentication,
@@ -415,4 +443,5 @@ module.exports = {
   getPreviewUrlForTracks,
   findPlaylist,
   findAllPlaylists,
+  generatePlaylistName,
 };
