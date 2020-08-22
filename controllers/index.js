@@ -114,7 +114,7 @@ module.exports = {
         return;
       }
 
-      // Reponse is sent here
+      // Response is sent here
       res.status(200).send({
         status: true,
         message: 'Resetting the playlist. Check #feed-music-api-monitors for results/errors.',
