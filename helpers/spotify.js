@@ -240,7 +240,7 @@ const saveArtists = async (trackDetails) => {
  * @description Saves playlist tracks to the database
  * @param {Array<Object>} tracksData array of tracks to be saved
  * @param {Object} playlist
- * @returns {Promise<>}
+ * @returns {Promise<Object>}
  */
 const saveTracks = async (tracksData, playlist) => {
   const spotifyTrackIds = tracksData.map((track) => track.id);
@@ -331,10 +331,10 @@ const getPreviewUrlForTracks = async (tracks) => {
  */
 const sanitizeGetSinglePlaylistResponse = (playlist) => {
   const tracks = playlist.tracks
-    .reduce((acc, cur) => {
-      const trackDoc = cur._doc;
+    .reduce((playlistTracks, track) => {
+      const trackDoc = track._doc;
       const artistNames = [...new Set(trackDoc.artists.map((each) => each.name))].join(', ');
-      return [...acc,
+      return [...playlistTracks,
         { ...trackDoc, artists: artistNames },
       ];
     }, []);
@@ -387,6 +387,7 @@ const findPlaylist = async (playlistId) => {
       select: contributorFields,
     })
     .exec();
+  if (!playlist) return null;
   return sanitizeGetSinglePlaylistResponse(playlist._doc);
 };
 

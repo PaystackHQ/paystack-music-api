@@ -6,12 +6,12 @@ const logger = require('./logger');
 
 module.exports = {
   /**
-     * Recursive method that returns all messages from the slack channel
-     * using Slack's API pagination.
-     * @param {*} month
-     * @param {*} cursor
-     * @param {*} messages
-     */
+    * Recursive method that returns all messages from the slack channel
+    * using Slack's API pagination.
+    * @param {*} month
+    * @param {*} cursor
+    * @param {*} messages
+  */
   async fetchChannelHistory(month, cursor, messages = []) {
     const startTime = month.startOf('month')
       .format('X.SSSSSS');
@@ -64,8 +64,9 @@ module.exports = {
   },
 
   /**
-   * Remove duplicate tracks.
-   * @param {object} spotifyMessages
+   * Filters all messages for Spotify tracks and removes duplicates.
+   * @param {Object} spotifyMessages
+   * @returns {Array} an arrayof unique Spotify tracks
    */
   filterSpotifyTracks(spotifyMessages) {
     const tracks = [];
@@ -105,6 +106,10 @@ module.exports = {
       .then((response) => response.data);
   },
 
+  /**
+   * @description generates a Spotify token using the client id and token
+   * @returns {Object} an object containing an encoded Spotify token
+   */
   getSpotifyToken() {
     const encodedToken = Buffer.from(`${spotifyConfig.clientId}:${spotifyConfig.clientToken}`)
       .toString('base64');
@@ -114,6 +119,11 @@ module.exports = {
     };
   },
 
+  /**
+   * @description sends a message in plain text to the specified monitor challenge
+   * @param {String|Object} message the message to be sent
+   * @returns {String} the sent message
+   */
   sendMonitorMessage(message) {
     const channel = slackConfig.monitoringChannel;
 
@@ -132,15 +142,19 @@ module.exports = {
       'Content-Type': 'application/json',
     };
 
+    const text = typeof message === 'string' ? message : JSON.stringify(message);
+
     return axios.post(url, {
       channel,
-      text: message,
+      text,
     }, { headers })
       .then((response) => response.data);
   },
 
   /**
-   * @param {object} tracksData
+   * @description saves the users who submitted a track as Contributor type to the database
+   * @param {Object} tracksData
+   * @returns {Promise<Array>} A unique array of users/contributors
    */
   async saveContributors(tracksData) {
     const url = `https://slack.com/api/users.info?token=${slackConfig.token}&user=`;
@@ -162,7 +176,7 @@ module.exports = {
       return contributor;
     }));
     const uniqueContributors = [
-      ...new Map(contributors.filter((c) => c !== null).map((c) => [c.slackId, c])).values(),
+      ...new Map(contributors.filter(Boolean).map((c) => [c.slackId, c])).values(),
     ];
 
     return uniqueContributors;
