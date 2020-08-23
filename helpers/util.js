@@ -61,9 +61,31 @@ function gracefulShutdown(conn, msg, cb) {
   });
 }
 
+/**
+ * @description prepends 0 to a number if it is less than 10
+ * @param {String|Number} time time period to prepend zero to
+ * @returns {Number}
+ */
+const prependZeroIfLessThanTen = (time) => {
+  const numericTime = Number(time);
+  return numericTime < 10 ? `0${numericTime}` : numericTime;
+};
+
+/**
+ * @description returns formatted date
+ * @param {String|Number} param0{day}
+ * @param {String|Number} param1{month}
+ * @param {String|Number} param2{year}
+ */
+const getFormattedDate = ({ day, month, year }) => {
+  const [dateMonth, dateDay] = [month, day].map(prependZeroIfLessThanTen);
+  return `${year}-${dateMonth}-${dateDay}`;
+};
+
 module.exports = {
   chunkArray,
   fetchPastMonths,
   sleep,
   gracefulShutdown,
+  getFormattedDate,
 };
