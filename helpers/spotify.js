@@ -246,12 +246,18 @@ const savePlaylist = async (playlistData, contributors) => {
 const saveArtists = async (trackDetails) => {
   const artists = trackDetails.map((track) => track.artists).flat();
   const artistDocs = artists.map((artist) => ({
-    name: artist.name,
-    url: artist.href,
-    spotifyId: artist.id,
+    updateOne: {
+      filter: { spotifyId: artist.id },
+      update: {
+        name: artist.name,
+        url: artist.href,
+        spotifyId: artist.id,
+      },
+      upsert: true,
+    },
   }));
   try {
-    await Artist.insertMany(artistDocs, { ordered: false });
+    await Artist.bulkWrite(artistDocs);
   } catch (err) {
     logger.error(err);
   }
