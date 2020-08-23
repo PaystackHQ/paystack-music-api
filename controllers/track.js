@@ -6,7 +6,7 @@ module.exports = {
   getTrackAudioFeatures: async (req, res) => {
     try {
       const tracks = await spotify.findTracksWithoutAnalytics();
-      if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their analytics set'});
+      if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their analytics set' });
       await spotify.performAuthentication();
       spotify.getAudioAnalyticsForTracks(tracks);
       return res.status(200).send({

@@ -336,9 +336,7 @@ const getAudioAnalyticsForTracks = async (tracks) => {
  * @description Returns all the tracks with missing analytics
  * @returns {Promise<>}
  */
-const findTracksWithoutAnalytics = async () => {
-  return Track.find({ analytics: { $exists: false } });
-};
+const findTracksWithoutAnalytics = async () => Track.find({ analytics: { $exists: false } });
 
 const getPreviewUrlForTracks = async (tracks) => {
   const trackIds = tracks.map((t) => t.trackId);
