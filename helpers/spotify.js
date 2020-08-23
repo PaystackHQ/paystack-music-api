@@ -319,13 +319,17 @@ const getAudioFeaturesForTracks = async (tracks) => {
 
   const trackUpdatePromises = trackDataArray.filter((track) => !!track).map((track) => {
     const sanitisedTrack = sanitizeGetAudioFeaturesForTrackResponse(track);
-    const { id: trackId } = sanitisedTrack;
-    delete sanitisedTrack.id;
-    return Track.findOneAndUpdate({ trackId }, { analytics: sanitisedTrack }, { upsert: true });
+    const { id: trackId, ...restOfTrack } = sanitisedTrack;
+    return Track.findOneAndUpdate({ trackId }, { analytics: restOfTrack }, { upsert: true });
   });
   return Promise.all(trackUpdatePromises);
 };
 
+/**
+ * @description uses the Spotify API to fetch preview URLs for a list of tracks
+ * @param {Array} tracks array of tracks to get preview urls for
+ * @returns {Array} array of tracks with preview urls attached
+ */
 const getPreviewUrlForTracks = async (tracks) => {
   const trackIds = tracks.map((t) => t.id);
   const trackIdChunks = chunkArray(trackIds, 50);

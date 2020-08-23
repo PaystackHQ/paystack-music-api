@@ -43,6 +43,11 @@ module.exports = {
     return history;
   },
 
+  /**
+   * @description filters all Slack messages for Spotify URLs
+   * @param {Array} messages an array of slack messages
+   * @returns {Array} filtered messages with Spotify attachments
+   */
   filterSpotifyMessages(messages) {
     const spotifyMessages = [];
     messages.forEach((msg) => {
@@ -91,7 +96,13 @@ module.exports = {
     return tracks;
   },
 
-  createPlaylist(token, name, description) {
+  /**
+   * @description createes a Spotify playlist
+   * @param {String} name the name of the Spotify playlist
+   * @param {String} description a short description of the Spotify playlist
+   * @returns {Object} the created playlist
+   */
+  createPlaylist(name, description) {
     const url = 'https://api.spotify.com/v1/playlists';
     const headers = {
       Authorization: `Bearer ${spotifyConfig.token}`,
@@ -135,6 +146,11 @@ module.exports = {
     return this.sendMessage(message, channel);
   },
 
+  /**
+   * @description sends a message to a specified Slack channel
+   * @param {String} message the message to be sent
+   * @param {String} channel the Slack channel ID to send a message to
+   */
   sendMessage(message, channel = slackConfig.targetChannel) {
     const url = 'https://slack.com/api/chat.postMessage';
     const headers = {
