@@ -198,7 +198,7 @@ async function getTrackData(trackIds) {
       artists: track.artists,
       artist_names: track.artists.map((artist) => artist.name),
       album_covers: track.album.images,
-      id: track.id,
+      trackId: track.id,
     }));
 }
 
@@ -243,14 +243,14 @@ const saveArtists = async (trackDetails) => {
  * @returns {Promise<>}
  */
 const saveTracks = async (tracksData, playlist) => {
-  const spotifyTrackIds = tracksData.map((track) => track.id);
+  const spotifyTrackIds = tracksData.map((track) => track.trackId);
   const trackDetails = await getTrackData(spotifyTrackIds);
 
   // Save artists
   await saveArtists(trackDetails);
 
   const tracksDocs = await Promise.all(trackDetails.map(async (track) => {
-    const slackData = tracksData.find((t) => t.id === track.id);
+    const slackData = tracksData.find((t) => t.trackId === track.trackId);
     const contributors = await Contributor.find({ slackId: { $in: slackData.users } });
     const contributorIds = contributors.map((c) => c._id);
 
@@ -262,7 +262,7 @@ const saveTracks = async (tracksData, playlist) => {
       service: track.service,
       title: track.name,
       track_url: track.url,
-      trackId: track.id,
+      trackId: track.trackId,
       contributors: contributorIds,
       artists: artistIds,
       artist_names: track.artist_names.join(', '),
@@ -281,8 +281,8 @@ const saveTracks = async (tracksData, playlist) => {
  * @param {Array<Object>} tracks array of tracks
  * @returns {Promise<>}
  */
-const getAudioFeaturesForTracks = async (tracks) => {
-  const trackIds = tracks.map((t) => t.id);
+const getAudioAnalyticsForTracks = async (tracks) => {
+  const trackIds = tracks.map((t) => t.trackId);
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
@@ -305,8 +305,16 @@ const getAudioFeaturesForTracks = async (tracks) => {
   return Promise.all(trackUpdatePromises);
 };
 
+/**
+ * @description Returns all the tracks with missing analytics
+ * @returns {Promise<>}
+ */
+const findTracksWithoutAnalytics = async () => {
+  return Track.find({ analytics: { $exists: false } });
+};
+
 const getPreviewUrlForTracks = async (tracks) => {
-  const trackIds = tracks.map((t) => t.id);
+  const trackIds = tracks.map((t) => t.trackId);
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
@@ -406,12 +414,13 @@ module.exports = {
   getPlaylist,
   setPlaylistCover,
   getAudioFeaturesForTrack,
+  findTracksWithoutAnalytics,
   isSpotifyTrack,
   getTrackData,
   getSpotifyUrlParts,
   savePlaylist,
   saveTracks,
-  getAudioFeaturesForTracks,
+  getAudioAnalyticsForTracks,
   getPreviewUrlForTracks,
   findPlaylist,
   findAllPlaylists,

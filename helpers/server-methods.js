@@ -51,12 +51,12 @@ const trigger = async ({ day, month, year }) => {
   logger.debug('Saved spotify playlist');
   await spotify.saveTracks(tracks, savedPlaylist);
   logger.debug('Saved tracks');
-  await spotify.getAudioFeaturesForTracks(tracks);
+  await spotify.getAudioAnalyticsForTracks(tracks);
   await spotify.getPreviewUrlForTracks(tracks);
   logger.debug('Fetched audio features for tracks');
 
   // and songs to playlist
-  const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
+  const trackURIs = tracks.map((track) => `spotify:track:${track.trackId}`);
 
   // upload in batches of 99
   const batchSize = 99;

@@ -78,7 +78,7 @@ module.exports = {
             title: message.title,
             link: message.link,
             users: [message.user],
-            id: trackId,
+            trackId,
           });
         } else {
           // add multiple contributors to one track
