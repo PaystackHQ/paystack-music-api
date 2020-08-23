@@ -1,5 +1,5 @@
 const spotify = require('../helpers/spotify');
-const logger = require('../helpers/logger');
+const errorResponse = require('../responses/errorResponse');
 
 module.exports = {
 
@@ -19,8 +19,7 @@ module.exports = {
         data: playlist,
       });
     } catch (err) {
-      logger.error(err);
-      return res.status(500).send({ status: false, message: 'An error occurred' });
+      return errorResponse(res, err);
     }
   },
 
@@ -32,7 +31,7 @@ module.exports = {
         data: playlists,
       });
     } catch (err) {
-      return res.status(500).send({ status: false, message: 'An error occurred' });
+      return errorResponse(res, err);
     }
   },
 };

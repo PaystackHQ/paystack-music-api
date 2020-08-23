@@ -6,6 +6,7 @@ const serverMethods = require('../helpers/server-methods');
 const slack = require('../helpers/slack');
 const resetScript = require('../scripts/reset');
 const logger = require('../helpers/logger');
+const errorResponse = require('../responses/errorResponse');
 
 const { app: appConfig } = require('../config');
 
@@ -93,8 +94,7 @@ module.exports = {
         data: playlist,
       });
     } catch (err) {
-      logger.error(err);
-      return res.status(500).send({ message: 'An error occurred' });
+      return errorResponse(res, err);
     }
   },
 
