@@ -261,7 +261,7 @@ const saveArtists = async (trackDetails) => {
  * @description Saves playlist tracks to the database
  * @param {Array<Object>} tracksData array of tracks to be saved
  * @param {Object} playlist
- * @returns {Promise<>}
+ * @returns {Promise<Object>}
  */
 const saveTracks = async (tracksData, playlist) => {
   const spotifyTrackIds = tracksData.map((track) => track.id);
@@ -319,13 +319,17 @@ const getAudioFeaturesForTracks = async (tracks) => {
 
   const trackUpdatePromises = trackDataArray.filter((track) => !!track).map((track) => {
     const sanitisedTrack = sanitizeGetAudioFeaturesForTrackResponse(track);
-    const { id: trackId } = sanitisedTrack;
-    delete sanitisedTrack.id;
-    return Track.findOneAndUpdate({ trackId }, { analytics: sanitisedTrack }, { upsert: true });
+    const { id: trackId, ...restOfTrack } = sanitisedTrack;
+    return Track.findOneAndUpdate({ trackId }, { analytics: restOfTrack }, { upsert: true });
   });
   return Promise.all(trackUpdatePromises);
 };
 
+/**
+ * @description uses the Spotify API to fetch preview URLs for a list of tracks
+ * @param {Array} tracks array of tracks to get preview urls for
+ * @returns {Array} array of tracks with preview urls attached
+ */
 const getPreviewUrlForTracks = async (tracks) => {
   const trackIds = tracks.map((t) => t.id);
   const trackIdChunks = chunkArray(trackIds, 50);
@@ -352,10 +356,10 @@ const getPreviewUrlForTracks = async (tracks) => {
  */
 const sanitizeGetSinglePlaylistResponse = (playlist) => {
   const tracks = playlist.tracks
-    .reduce((acc, cur) => {
-      const trackDoc = cur._doc;
+    .reduce((playlistTracks, track) => {
+      const trackDoc = track._doc;
       const artistNames = [...new Set(trackDoc.artists.map((each) => each.name))].join(', ');
-      return [...acc,
+      return [...playlistTracks,
         { ...trackDoc, artists: artistNames },
       ];
     }, []);
@@ -408,6 +412,7 @@ const findPlaylist = async (playlistId) => {
       select: contributorFields,
     })
     .exec();
+  if (!playlist) return null;
   return sanitizeGetSinglePlaylistResponse(playlist._doc);
 };
 

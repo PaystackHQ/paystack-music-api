@@ -73,7 +73,7 @@ module.exports = {
       return res.status(code).send({ status, message });
     } catch (error) {
       const e = { message: error.message, stack: error.stack };
-      slack.sendMonitorMessage(JSON.stringify(e));
+      slack.sendMonitorMessage(e);
       return res.send(JSON.stringify(e));
     }
   },
@@ -131,7 +131,7 @@ module.exports = {
     } catch (err) {
       // We aren't sending any 500 response because this is a post-process flow
       logger.error(err);
-      slack.sendMonitorMessage(JSON.stringify(err));
+      slack.sendMonitorMessage(err);
     }
   },
 
