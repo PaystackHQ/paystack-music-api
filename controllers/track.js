@@ -1,7 +1,9 @@
 const spotify = require('../helpers/spotify');
-const serverErrorResponse = require('../responses/serverErrorResponse');
-const clientErrorResponse = require('../responses/clientErrorResponse');
-const successResponse = require('../responses/successResponse');
+const {
+  successResponse,
+  clientErrorResponse,
+  serverErrorResponse,
+} = require('../responses');
 
 module.exports = {
 

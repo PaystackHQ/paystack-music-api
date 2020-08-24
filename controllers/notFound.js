@@ -1,4 +1,4 @@
-const clientErrorResponse = require('../responses/clientErrorResponse');
+const { clientErrorResponse } = require('../responses');
 
 /**
  * Controller for handling routes that don't exist

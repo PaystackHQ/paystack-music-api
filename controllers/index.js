@@ -6,7 +6,7 @@ const serverMethods = require('../helpers/server-methods');
 const slack = require('../helpers/slack');
 const resetScript = require('../scripts/reset');
 const logger = require('../helpers/logger');
-const serverErrorResponse = require('../responses/serverErrorResponse');
+const { serverErrorResponse } = require('../responses');
 
 const { app: appConfig } = require('../config');
 
