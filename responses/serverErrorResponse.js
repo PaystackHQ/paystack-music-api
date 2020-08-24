@@ -3,8 +3,8 @@ const slack = require('../helpers/slack');
 
 /**
  * Method to return 5xx errors
- * @param {*} res 
- * @param {*} error 
+ * @param {*} res
+ * @param {*} error
  */
 const serverErrorResponse = (res, error, code = 500) => {
   logger.error(error);
