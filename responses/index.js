@@ -8,8 +8,9 @@ const slack = require('../helpers/slack');
  * @param {String} message
  * @param {Array|Object} data
  */
-/* eslint-disable-next-line max-len */
-const successResponse = (res, code, message, data) => res.status(code).send({ success: true, message, data });
+const successResponse = (res, code, message, data) => (
+  res.status(code).send({ success: true, message, data })
+);
 
 /**
  * Method to return client error responses
@@ -17,8 +18,9 @@ const successResponse = (res, code, message, data) => res.status(code).send({ su
  * @param {Number} code
  * @param {String} message
  */
-/* eslint-disable-next-line max-len */
-const clientErrorResponse = (res, code, message) => res.status(code).send({ success: false, message });
+const clientErrorResponse = (res, code, message) => (
+  res.status(code).send({ success: false, message })
+);
 
 /**
  * Method to return 5xx errors
