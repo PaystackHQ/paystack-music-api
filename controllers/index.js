@@ -6,7 +6,7 @@ const serverMethods = require('../helpers/server-methods');
 const slack = require('../helpers/slack');
 const resetScript = require('../scripts/reset');
 const logger = require('../helpers/logger');
-const errorResponse = require('../responses/errorResponse');
+const serverErrorResponse = require('../responses/serverErrorResponse');
 
 const { app: appConfig } = require('../config');
 
@@ -94,7 +94,7 @@ module.exports = {
         data: playlist,
       });
     } catch (err) {
-      return errorResponse(res, err);
+      return serverErrorResponse(res, err);
     }
   },
 
