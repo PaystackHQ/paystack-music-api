@@ -97,7 +97,7 @@ module.exports = {
   },
 
   /**
-   * @description createes a Spotify playlist
+   * @description creates a Spotify playlist
    * @param {String} name the name of the Spotify playlist
    * @param {String} description a short description of the Spotify playlist
    * @returns {Object} the created playlist
