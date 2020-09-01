@@ -338,6 +338,12 @@ const getAudioAnalyticsForTracks = async (tracks) => {
 const findTracksWithoutAnalytics = async () => Track.find({ analytics: { $exists: false } });
 
 /**
+ * @description Returns all the tracks with missing previews
+ * @returns {Promise<>}
+ */
+const findTracksWithoutPreview = async () => Track.find({ preview_url: { $exists: false } });
+
+/**
  * @description uses the Spotify API to fetch preview URLs for a list of tracks
  * @param {Array} tracks array of tracks to get preview urls for
  * @returns {Array} array of tracks with preview urls attached
@@ -355,8 +361,9 @@ const getPreviewUrlForTracks = async (tracks) => {
     Array.prototype.push.apply(trackDataArray, fetchedTracks);
   });
 
+  // Updates multiple just in-case the track already exists, inserts if it doesn't exist
   const trackUpdatePromises = trackDataArray.filter((track) => !!track)
-    .map((track) => Track.findOneAndUpdate({ trackId: track.id },
+    .map((track) => Track.updateMany({ trackId: track.id },
       { preview_url: track.preview_url }, { upsert: true }));
   return Promise.all(trackUpdatePromises);
 };
@@ -452,6 +459,7 @@ module.exports = {
   setPlaylistCover,
   getAudioFeaturesForTrack,
   findTracksWithoutAnalytics,
+  findTracksWithoutPreview,
   isSpotifyTrack,
   getTrackData,
   getSpotifyUrlParts,

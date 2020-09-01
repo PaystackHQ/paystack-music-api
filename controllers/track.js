@@ -19,6 +19,22 @@ module.exports = {
     }
   },
 
+  populateTrackPreviews: async (req, res) => {
+    try {
+      const tracks = await spotify.findTracksWithoutPreview();
+      if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their previews set' });
+      await spotify.performAuthentication();
+      await spotify.getPreviewUrlForTracks(tracks);
+      return res.status(200).send({
+        status: true,
+        message: 'Previews have been populated.',
+      });
+    } catch (err) {
+      logger.error(err);
+      return res.status(500).send({ message: 'An error occurred' });
+    }
+  },
+
   getTrackData: async (req, res) => {
     try {
       const { track_ids: ids } = req.body;
