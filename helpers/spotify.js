@@ -326,7 +326,7 @@ const getAudioAnalyticsForTracks = async (tracks) => {
   const trackUpdatePromises = trackDataArray.filter((track) => !!track).map((track) => {
     const sanitisedTrack = sanitizeGetAudioFeaturesForTrackResponse(track);
     const { id: trackId, ...restOfTrack } = sanitisedTrack;
-    return Track.findOneAndUpdate({ trackId }, { analytics: restOfTrack }, { upsert: true });
+    return Track.updateMany({ trackId }, { analytics: restOfTrack }, { upsert: true });
   });
   return Promise.all(trackUpdatePromises);
 };
