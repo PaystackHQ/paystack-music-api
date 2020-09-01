@@ -19,7 +19,7 @@ module.exports = {
     }
   },
 
-  getTrackPreviews: async (req, res) => {
+  populateTrackPreviews: async (req, res) => {
     try {
       const tracks = await spotify.findTracksWithoutPreview();
       if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their previews set' });
