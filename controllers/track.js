@@ -5,13 +5,13 @@ module.exports = {
 
   getTrackAudioFeatures: async (req, res) => {
     try {
-      const { id: trackId } = req.params;
-
+      const tracks = await spotify.findTracksWithoutAnalytics();
+      if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their analytics set' });
       await spotify.performAuthentication();
-      const trackFeatures = await spotify.getAudioFeaturesForTrack(trackId);
+      spotify.getAudioAnalyticsForTracks(tracks);
       return res.status(200).send({
         status: true,
-        data: trackFeatures,
+        message: 'Populating analytics...',
       });
     } catch (err) {
       logger.error(err);
@@ -35,6 +35,7 @@ module.exports = {
         data,
       });
     } catch (err) {
+      logger.error(err);
       return res.status(500).send({ message: 'An error occurred' });
     }
   },
