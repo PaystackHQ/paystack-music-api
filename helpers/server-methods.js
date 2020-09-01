@@ -48,7 +48,7 @@ const trigger = async ({ day, month, year }) => {
   playlist.date_added = playlistMonth.utc().toDate();
   const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
 
-  await spotify.saveTracks(tracks, savedPlaylist),
+  await spotify.saveTracks(tracks, savedPlaylist);
   await Promise.all([
     spotify.getAudioFeaturesForTracks(tracks),
     spotify.getPreviewUrlForTracks(tracks),
