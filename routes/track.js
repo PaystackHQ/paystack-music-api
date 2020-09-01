@@ -7,6 +7,7 @@ const router = express.Router();
 const controllers = require('../controllers/track');
 
 router.get('/populate-analytics', controllers.getTrackAudioFeatures);
+router.get('/populate-previews', controllers.getTrackPreviews);
 
 router.post('/data', validateRequest(validationSchemas.getTrackDataBody), controllers.getTrackData);
 
