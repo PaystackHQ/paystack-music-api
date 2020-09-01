@@ -27,7 +27,7 @@ module.exports = {
       await spotify.getPreviewUrlForTracks(tracks);
       return res.status(200).send({
         status: true,
-        message: 'Populating previews...',
+        message: 'Previews have been populated.',
       });
     } catch (err) {
       logger.error(err);
