@@ -2,7 +2,7 @@
 
 ## Description
 
-The Paystack Music Slack Bot is an integration built by our very own @onyekachi. It's responsible for all the wonderful playlists we're now sharing with the world every month at [Paystack Music](<[https://paystack.com/music/](https://paystack.com/music/)>)
+The Paystack Music Slack Bot is an integration built by our team at Paystack. It's responsible for all the wonderful playlists we're now sharing with the world every month at [Paystack Music](<[https://paystack.com/music/](https://paystack.com/music/)>)
 
 ## How it works
 
@@ -26,7 +26,10 @@ You'll need to set up apps on both Slack and Spotify for the next steps.
 
 ### Slack
 
-You'll need to connect a Slack channel to parse for Spotify links.
+- You'll first need to create a new Slack app and give it the links:read OAuth scope. This allows our bot to view URLs in Slack messages. 
+- Install the app to your workspace. Once it's installed, Slack will generate a Bot User OAuth Access Token. When you get it, paste it in the `SLACK_TOKEN` variable in your `.env` file.
+- Next, we'll need the `CHANNEL_ID` for the Slack channel you want the bot to get song links from. If you open your Slack workspace in the browser, you can copy it from the URL. The format is `https://app.slack.com/client/{WORKSPACE_ID}/{CHANNEL_ID}`
+- Set the `SLACK_TARGET_CHANNEL_ID` in your `.env` file to the channel ID you've copied.
 
 ### Spotify
 
