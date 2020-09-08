@@ -1,5 +1,7 @@
 # Paystack Music Slack Bot
 
+![Paystack Music](paystack-music.gif)
+
 ## Description
 
 The Paystack Music Slack Bot is an integration built by our team at Paystack. It's responsible for all the wonderful playlists we're now sharing with the world every month at [Paystack Music](<[https://paystack.com/music/](https://paystack.com/music/)>)
