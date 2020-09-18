@@ -219,7 +219,7 @@ async function getTrackData(trackIds) {
       artists: track.artists,
       artist_names: track.artists.map((artist) => artist.name),
       album_covers: track.album.images,
-      id: track.id,
+      trackId: track.id,
     }));
 }
 
@@ -246,12 +246,18 @@ const savePlaylist = async (playlistData, contributors) => {
 const saveArtists = async (trackDetails) => {
   const artists = trackDetails.map((track) => track.artists).flat();
   const artistDocs = artists.map((artist) => ({
-    name: artist.name,
-    url: artist.href,
-    spotifyId: artist.id,
+    updateOne: {
+      filter: { spotifyId: artist.id },
+      update: {
+        name: artist.name,
+        url: artist.href,
+        spotifyId: artist.id,
+      },
+      upsert: true,
+    },
   }));
   try {
-    await Artist.insertMany(artistDocs, { ordered: false });
+    await Artist.bulkWrite(artistDocs);
   } catch (err) {
     logger.error(err);
   }
@@ -264,14 +270,14 @@ const saveArtists = async (trackDetails) => {
  * @returns {Promise<Object>}
  */
 const saveTracks = async (tracksData, playlist) => {
-  const spotifyTrackIds = tracksData.map((track) => track.id);
+  const spotifyTrackIds = tracksData.map((track) => track.trackId);
   const trackDetails = await getTrackData(spotifyTrackIds);
 
   // Save artists
   await saveArtists(trackDetails);
 
   const tracksDocs = await Promise.all(trackDetails.map(async (track) => {
-    const slackData = tracksData.find((t) => t.id === track.id);
+    const slackData = tracksData.find((t) => t.trackId === track.trackId);
     const contributors = await Contributor.find({ slackId: { $in: slackData.users } });
     const contributorIds = contributors.map((c) => c._id);
 
@@ -283,7 +289,7 @@ const saveTracks = async (tracksData, playlist) => {
       service: track.service,
       title: track.name,
       track_url: track.url,
-      trackId: track.id,
+      trackId: track.trackId,
       contributors: contributorIds,
       artists: artistIds,
       artist_names: track.artist_names.join(', '),
@@ -302,8 +308,8 @@ const saveTracks = async (tracksData, playlist) => {
  * @param {Array<Object>} tracks array of tracks
  * @returns {Promise<>}
  */
-const getAudioFeaturesForTracks = async (tracks) => {
-  const trackIds = tracks.map((t) => t.id);
+const getAudioAnalyticsForTracks = async (tracks) => {
+  const trackIds = tracks.map((t) => t.trackId);
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
@@ -320,10 +326,22 @@ const getAudioFeaturesForTracks = async (tracks) => {
   const trackUpdatePromises = trackDataArray.filter((track) => !!track).map((track) => {
     const sanitisedTrack = sanitizeGetAudioFeaturesForTrackResponse(track);
     const { id: trackId, ...restOfTrack } = sanitisedTrack;
-    return Track.findOneAndUpdate({ trackId }, { analytics: restOfTrack }, { upsert: true });
+    return Track.updateMany({ trackId }, { analytics: restOfTrack }, { upsert: true });
   });
   return Promise.all(trackUpdatePromises);
 };
+
+/**
+ * @description Returns all the tracks with missing analytics
+ * @returns {Promise<>}
+ */
+const findTracksWithoutAnalytics = async () => Track.find({ analytics: { $exists: false } });
+
+/**
+ * @description Returns all the tracks with missing previews
+ * @returns {Promise<>}
+ */
+const findTracksWithoutPreview = async () => Track.find({ preview_url: { $exists: false } });
 
 /**
  * @description uses the Spotify API to fetch preview URLs for a list of tracks
@@ -331,7 +349,7 @@ const getAudioFeaturesForTracks = async (tracks) => {
  * @returns {Array} array of tracks with preview urls attached
  */
 const getPreviewUrlForTracks = async (tracks) => {
-  const trackIds = tracks.map((t) => t.id);
+  const trackIds = tracks.map((t) => t.trackId);
   const trackIdChunks = chunkArray(trackIds, 50);
   const trackDataArray = [];
 
@@ -343,8 +361,9 @@ const getPreviewUrlForTracks = async (tracks) => {
     Array.prototype.push.apply(trackDataArray, fetchedTracks);
   });
 
+  // Updates multiple just in-case the track already exists, inserts if it doesn't exist
   const trackUpdatePromises = trackDataArray.filter((track) => !!track)
-    .map((track) => Track.findOneAndUpdate({ trackId: track.id },
+    .map((track) => Track.updateMany({ trackId: track.id },
       { preview_url: track.preview_url }, { upsert: true }));
   return Promise.all(trackUpdatePromises);
 };
@@ -439,12 +458,14 @@ module.exports = {
   getPlaylist,
   setPlaylistCover,
   getAudioFeaturesForTrack,
+  findTracksWithoutAnalytics,
+  findTracksWithoutPreview,
   isSpotifyTrack,
   getTrackData,
   getSpotifyUrlParts,
   savePlaylist,
   saveTracks,
-  getAudioFeaturesForTracks,
+  getAudioAnalyticsForTracks,
   getPreviewUrlForTracks,
   findPlaylist,
   findAllPlaylists,

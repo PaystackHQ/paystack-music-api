@@ -78,17 +78,17 @@ module.exports = {
     spotifyMessages.forEach((message) => {
       const { mediaType, trackId } = spotify.getSpotifyUrlParts(message.link);
       if (mediaType === 'track') {
-        if (!tracks.some((t) => t.id === trackId)) {
+        if (!tracks.some((t) => t.trackId === trackId)) {
           tracks.push({
             service: message.service,
             title: message.title,
             link: message.link,
             users: [message.user],
-            id: trackId,
+            trackId,
           });
         } else {
           // add multiple contributors to one track
-          const idx = tracks.findIndex((t) => t.id === trackId);
+          const idx = tracks.findIndex((t) => t.trackId === trackId);
           if (idx > -1) tracks[idx].users.push(message.user);
         }
       }

@@ -50,12 +50,12 @@ const trigger = async ({ day, month, year }) => {
 
   await Promise.all([
     spotify.saveTracks(tracks, savedPlaylist),
-    spotify.getAudioFeaturesForTracks(tracks),
+    spotify.getAudioAnalyticsForTracks(tracks),
     spotify.getPreviewUrlForTracks(tracks),
   ]);
 
   // and songs to playlist
-  const trackURIs = tracks.map((track) => `spotify:track:${track.id}`);
+  const trackURIs = tracks.map((track) => `spotify:track:${track.trackId}`);
 
   // upload in batches of 99
   const batchSize = 99;

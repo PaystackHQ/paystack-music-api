@@ -12,12 +12,28 @@ module.exports = {
    */
   getTrackAudioFeatures: async (req, res) => {
     try {
-      const { id: trackId } = req.params;
-
+      const tracks = await spotify.findTracksWithoutAnalytics();
+      if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their analytics set' });
       await spotify.performAuthentication();
-      const trackFeatures = await spotify.getAudioFeaturesForTrack(trackId);
+      spotify.getAudioAnalyticsForTracks(tracks);
+      return res.status(200).send({
+        status: true,
+        message: 'Populating analytics...',
+      });
+    } catch (err) {
+      logger.error(err);
+      return res.status(500).send({ message: 'An error occurred' });
+    }
+  },
 
-      return successResponse(res, 200, 'Audio features retrieved', trackFeatures);
+  populateTrackPreviews: async (req, res) => {
+    try {
+      const tracks = await spotify.findTracksWithoutPreview();
+      if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their previews set' });
+      await spotify.performAuthentication();
+
+      await spotify.getPreviewUrlForTracks(tracks);
+      return successResponse(res, 200, 'Previews have been populated');
     } catch (err) {
       return serverErrorResponse(res, err);
     }
