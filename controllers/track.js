@@ -5,10 +5,10 @@ module.exports = {
 
   getTrackAudioFeatures: async (req, res) => {
     try {
-      const tracks = await spotify.findTracksWithoutAnalytics();
+      const tracks = await spotify.findTracksWithoutField('analytics');
       if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their analytics set' });
       await spotify.performAuthentication();
-      spotify.getAudioAnalyticsForTracks(tracks);
+      spotify.handleTracksUpdateWithAnalytics(tracks);
       return res.status(200).send({
         status: true,
         message: 'Populating analytics...',
@@ -21,10 +21,10 @@ module.exports = {
 
   populateTrackPreviews: async (req, res) => {
     try {
-      const tracks = await spotify.findTracksWithoutPreview();
+      const tracks = await spotify.findTracksWithoutField('preview_url');
       if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their previews set' });
       await spotify.performAuthentication();
-      await spotify.getPreviewUrlForTracks(tracks);
+      await spotify.handleTracksUpdateWithPreviewUrls(tracks);
       return res.status(200).send({
         status: true,
         message: 'Previews have been populated.',

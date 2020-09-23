@@ -303,70 +303,85 @@ const saveTracks = async (tracksData, playlist) => {
   await playlist.save();
 };
 
+const updateTracks = async (criteria, updateData, upsert = true) => (
+  Track.updateMany(criteria, updateData, { upsert })
+);
+
+const updateTracksWithAnalytics = async (tracks) => {
+  const validTracks = tracks.filter(Boolean);
+  const trackUpdatePromises = validTracks.map((track) => {
+    const sanitisedTrack = sanitizeGetAudioFeaturesForTrackResponse(track);
+    const { id: trackId, ...restOfTrack } = sanitisedTrack;
+    return updateTracks({ trackId }, { analytics: restOfTrack });
+  });
+  return Promise.all(trackUpdatePromises);
+};
+
+const updateTracksWithPreviewUrls = async (tracks) => {
+  const validTracks = tracks.filter(Boolean);
+  // Updates multiple just in-case the track already exists, inserts if it doesn't exist
+  const trackUpdatePromises = validTracks.map((track) => (
+    updateTracks({ trackId: track.id }, { preview_url: track.preview_url })));
+  return Promise.all(trackUpdatePromises);
+};
+
 /**
  * @description Returns a playlist
  * @param {Array<Object>} tracks array of tracks
  * @returns {Promise<>}
  */
-const getAudioAnalyticsForTracks = async (tracks) => {
+const fetchAudioAnalyticsForTracks = async (tracks) => {
   const trackIds = tracks.map((t) => t.trackId);
   const trackIdChunks = chunkArray(trackIds, 50);
-  const trackDataArray = [];
 
-  const trackDataPromises = trackIdChunks.map((chunk) => (
+  const trackAnalyticsPromises = trackIdChunks.map((chunk) => (
     spotifyApi.getInstance().getAudioFeaturesForTracks(chunk)
   ));
 
-  const responses = await Promise.all(trackDataPromises);
-  responses.forEach((response) => {
-    const { audio_features: audioFeatures } = response.body;
-    Array.prototype.push.apply(trackDataArray, audioFeatures);
-  });
+  const responses = await Promise.all(trackAnalyticsPromises);
+  const tracksWithAudioFeatures = responses.reduce((allTracks, { body: responseBody }) => {
+    const { audio_features: audioFeatures } = responseBody;
+    return [...allTracks, ...audioFeatures];
+  }, []);
 
-  const trackUpdatePromises = trackDataArray.filter((track) => !!track).map((track) => {
-    const sanitisedTrack = sanitizeGetAudioFeaturesForTrackResponse(track);
-    const { id: trackId, ...restOfTrack } = sanitisedTrack;
-    return Track.updateMany({ trackId }, { analytics: restOfTrack }, { upsert: true });
-  });
-  return Promise.all(trackUpdatePromises);
+  return tracksWithAudioFeatures;
 };
-
-/**
- * @description Returns all the tracks with missing analytics
- * @returns {Promise<>}
- */
-const findTracksWithoutAnalytics = async () => Track.find({ analytics: { $exists: false } });
-
-/**
- * @description Returns all the tracks with missing previews
- * @returns {Promise<>}
- */
-const findTracksWithoutPreview = async () => Track.find({ preview_url: { $exists: false } });
 
 /**
  * @description uses the Spotify API to fetch preview URLs for a list of tracks
  * @param {Array} tracks array of tracks to get preview urls for
  * @returns {Array} array of tracks with preview urls attached
  */
-const getPreviewUrlForTracks = async (tracks) => {
+const fetchPreviewUrlForTracks = async (tracks) => {
   const trackIds = tracks.map((t) => t.trackId);
   const trackIdChunks = chunkArray(trackIds, 50);
-  const trackDataArray = [];
 
   const trackDataPromises = trackIdChunks.map((chunk) => spotifyApi.getInstance().getTracks(chunk));
 
   const responses = await Promise.all(trackDataPromises);
-  responses.forEach((response) => {
-    const { tracks: fetchedTracks } = response.body;
-    Array.prototype.push.apply(trackDataArray, fetchedTracks);
-  });
+  const fetchedTracks = responses.reduce((acc, { body: responseBody }) => {
+    const { tracks: fetchedTrack } = responseBody;
+    return [...acc, ...fetchedTrack];
+  }, []);
 
-  // Updates multiple just in-case the track already exists, inserts if it doesn't exist
-  const trackUpdatePromises = trackDataArray.filter((track) => !!track)
-    .map((track) => Track.updateMany({ trackId: track.id },
-      { preview_url: track.preview_url }, { upsert: true }));
-  return Promise.all(trackUpdatePromises);
+  return fetchedTracks;
 };
+
+const handleTracksUpdateWithAnalytics = async (tracks) => {
+  const tracksWithAnalytics = await fetchAudioAnalyticsForTracks(tracks);
+  return updateTracksWithAnalytics(tracksWithAnalytics);
+};
+
+const handleTracksUpdateWithPreviewUrls = async (tracks) => {
+  const tracksWithPreviewUrls = await fetchPreviewUrlForTracks(tracks);
+  return updateTracksWithPreviewUrls(tracksWithPreviewUrls);
+};
+
+/**
+ * @description Returns all the tracks with missing analytics
+ * @returns {Promise<>}
+ */
+const findTracksWithoutField = async (field) => Track.find({ [field]: { $exists: false } });
 
 /**
  * @description sanitizes the response from the fetch single playlist endpoint
@@ -458,15 +473,14 @@ module.exports = {
   getPlaylist,
   setPlaylistCover,
   getAudioFeaturesForTrack,
-  findTracksWithoutAnalytics,
-  findTracksWithoutPreview,
+  findTracksWithoutField,
   isSpotifyTrack,
   getTrackData,
   getSpotifyUrlParts,
   savePlaylist,
   saveTracks,
-  getAudioAnalyticsForTracks,
-  getPreviewUrlForTracks,
+  handleTracksUpdateWithAnalytics,
+  handleTracksUpdateWithPreviewUrls,
   findPlaylist,
   findAllPlaylists,
   generatePlaylistName,
