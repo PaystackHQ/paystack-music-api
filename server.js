@@ -14,6 +14,7 @@ const logger = require('./helpers/logger');
 const indexRouter = require('./routes/index');
 const playlistRouter = require('./routes/playlists');
 const trackRouter = require('./routes/track');
+const notFoundRouter = require('./routes/notFound');
 
 require('./config/db');
 
@@ -26,6 +27,7 @@ app.disable('x-powered-by');
 app.use('/', indexRouter);
 app.use('/playlists', playlistRouter);
 app.use('/track', trackRouter);
+app.use('*', notFoundRouter);
 
 // listen for requests :)
 const listener = app.listen(appConfig.port, () => {
