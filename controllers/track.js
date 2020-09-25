@@ -16,13 +16,9 @@ module.exports = {
       if (!tracks.length) return res.status(200).send({ status: true, message: 'All tracks have their analytics set' });
       await spotify.performAuthentication();
       spotify.getAudioAnalyticsForTracks(tracks);
-      return res.status(200).send({
-        status: true,
-        message: 'Populating analytics...',
-      });
+      return successResponse(res, 200, 'Populating analytics...');
     } catch (err) {
-      logger.error(err);
-      return res.status(500).send({ message: 'An error occurred' });
+      return serverErrorResponse(res, err);
     }
   },
 
