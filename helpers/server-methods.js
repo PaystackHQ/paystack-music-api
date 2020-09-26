@@ -48,10 +48,11 @@ const trigger = async ({ day, month, year }) => {
   playlist.date_added = playlistMonth.utc().toDate();
   const savedPlaylist = await spotify.savePlaylist(playlist, contributors);
 
+  await spotify.saveTracks(tracks, savedPlaylist);
+
   await Promise.all([
-    spotify.saveTracks(tracks, savedPlaylist),
-    spotify.getAudioAnalyticsForTracks(tracks),
-    spotify.getPreviewUrlForTracks(tracks),
+    spotify.handleTracksUpdateWithAnalytics(tracks),
+    spotify.handleTracksUpdateWithPreviewUrls(tracks),
   ]);
 
   // and songs to playlist
