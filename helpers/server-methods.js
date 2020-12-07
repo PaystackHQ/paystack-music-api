@@ -1,3 +1,4 @@
+/* eslint-disable quote-props */
 const moment = require('moment');
 const config = require('../config');
 const slack = require('./slack');
@@ -6,6 +7,7 @@ const color = require('./color');
 const image = require('./image');
 const util = require('./util');
 const Playlist = require('../models/playlist');
+const Wrapped2020Tracks = require('../models/Wrapped2020Tracks');
 
 const trigger = async ({ day, month, year }) => {
   const { status, message, code } = await spotify.performAuthentication();
@@ -104,6 +106,77 @@ const trigger = async ({ day, month, year }) => {
   };
 };
 
+/**
+ * This method relies on the existence of the `2020Tracks` collection which is created
+ * using a special aggregation found in `scripts/customAggregations/get2020Tracks.js`
+ * Subsequent years can be done by creating the collection, model and adding the mapping
+ * to this function.
+ * @param {String} year
+ * @param {Number} limit
+ */
+const getTopArtists = async ({ year, limit }) => {
+  const years = {
+    2020: Wrapped2020Tracks,
+  };
+
+  // confirm it's a year we have data for.
+  if (Object.keys(years).indexOf(year) < 0) {
+    return [];
+  }
+
+  const model = years[year];
+
+  const agg = [
+    {
+      '$project': {
+        'artist_names': {
+          '$split': [
+            '$artist_names', ', ',
+          ],
+        },
+      },
+    }, {
+      '$unwind': {
+        'path': '$artist_names',
+        'preserveNullAndEmptyArrays': false,
+      },
+    }, {
+      '$sortByCount': '$artist_names',
+    }, {
+      '$limit': Number(limit),
+    }, {
+      '$lookup': {
+        'from': 'artists',
+        'localField': '_id',
+        'foreignField': 'name',
+        'as': 'details',
+      },
+    }, {
+      '$project': {
+        '_id': {
+          '$arrayElemAt': [
+            '$details._id', 0,
+          ],
+        },
+        'name': '$_id',
+        'url': {
+          '$arrayElemAt': [
+            '$details.url', 0,
+          ],
+        },
+        'spotifyId': {
+          '$arrayElemAt': [
+            '$details.spotifyId', 0,
+          ],
+        },
+        'tracks': '$count',
+      },
+    },
+  ];
+  return model.aggregate(agg);
+};
+
 module.exports = {
   trigger,
+  getTopArtists,
 };

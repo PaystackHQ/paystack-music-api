@@ -136,4 +136,22 @@ module.exports = {
   },
 
   webhook: (req, res) => { },
+
+  wrappedGetTopArtists: async (req, res) => {
+    try {
+      const limit = req.query.limit || 3;
+      const year = req.query.year || '2020';
+
+      const data = await serverMethods.getTopArtists({ year, limit });
+
+      return res.status(200).send({
+        status: true,
+        data,
+      });
+    } catch (err) {
+      logger.error(err);
+      slack.sendMonitorMessage(err);
+      return res.status(500).send({ message: 'An error occurred' });
+    }
+  },
 };
