@@ -16,6 +16,7 @@ module.exports = {
   }),
   wrappedGetTopArtists: Joi.object().keys({
     limit: Joi.number(),
+    year: Joi.number(),
   }),
   getPlaylistByIdParams,
   resetBody,
