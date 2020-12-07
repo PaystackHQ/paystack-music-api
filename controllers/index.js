@@ -140,7 +140,7 @@ module.exports = {
   wrappedGetTopArtists: async (req, res) => {
     try {
       const limit = req.query.limit || 3;
-      const year = req.query.year || '2020';
+      const { year } = req.query;
 
       const data = await serverMethods.getTopArtists({ year, limit });
 
