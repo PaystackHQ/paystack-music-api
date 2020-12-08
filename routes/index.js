@@ -23,4 +23,6 @@ router.post('/reset', validateRequest(validationSchemas.resetBody), controllers.
 
 router.post('/webhook', controllers.webhook);
 
+router.get('/wrapped/top-artists', validateRequest(validationSchemas.wrappedGetTopArtists, 'query'), controllers.wrappedGetTopArtists);
+
 module.exports = router;

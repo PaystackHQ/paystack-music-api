@@ -1,0 +1,47 @@
+[
+    {
+      '$match': {
+        'name': new RegExp('2020')
+      }
+    }, {
+      '$unwind': {
+        'path': '$tracks', 
+        'preserveNullAndEmptyArrays': false
+      }
+    }, {
+      '$group': {
+        '_id': null, 
+        'tracks': {
+          '$addToSet': '$tracks'
+        }
+      }
+    }, {
+      '$unwind': {
+        'path': '$tracks', 
+        'preserveNullAndEmptyArrays': false
+      }
+    }, {
+      '$lookup': {
+        'from': 'tracks', 
+        'localField': 'tracks', 
+        'foreignField': '_id', 
+        'as': 'details'
+      }
+    }, {
+      '$unwind': {
+        'path': '$details', 
+        'preserveNullAndEmptyArrays': false
+      }
+    }, {
+      '$project': {
+        '_id': '$tracks', 
+        'contributors': '$details.contributors', 
+        'artists': '$details.artists', 
+        'title': '$details.title', 
+        'analytics': '$details.analytics', 
+        'artist_names': '$details.artist_names'
+      }
+    }, {
+      '$out': '2020Tracks'
+    }
+]

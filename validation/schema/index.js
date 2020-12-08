@@ -14,6 +14,10 @@ module.exports = {
   callbackQuery: Joi.object().keys({
     code: Joi.string().required(),
   }),
+  wrappedGetTopArtists: Joi.object().keys({
+    limit: Joi.number(),
+    year: Joi.number().required(),
+  }),
   getPlaylistByIdParams,
   resetBody,
   getAudioFeaturesParams,
