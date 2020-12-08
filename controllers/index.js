@@ -154,4 +154,39 @@ module.exports = {
       return res.status(500).send({ message: 'An error occurred' });
     }
   },
+
+  wrappedGetContributorTopArtists: async (req, res) => {
+    try {
+      const limit = req.query.limit || 3;
+      const { year, name } = req.query;
+
+      const contributor = await serverMethods.getContributorByName({ name });
+
+      if (!contributor) {
+        return res.status(400).send({
+          status: false,
+          message: 'We could not find any contributor with this name.',
+        });
+      }
+
+      // eslint-disable-next-line no-underscore-dangle
+      const results = await serverMethods.getContributorTopArtists(year, contributor._id, limit);
+
+      const { about, profile_image: profileImage } = contributor;
+
+      const data = {
+        contributor: { name, about, profileImage },
+        artists: results,
+      };
+
+      return res.status(200).send({
+        status: true,
+        data,
+      });
+    } catch (err) {
+      logger.error(err);
+      slack.sendMonitorMessage(err);
+      return res.status(500).send({ message: 'An error occurred' });
+    }
+  },
 };

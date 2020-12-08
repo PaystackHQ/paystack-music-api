@@ -18,6 +18,12 @@ module.exports = {
     limit: Joi.number(),
     year: Joi.number().required(),
   }),
+  wrappedGetContributorTopArtists: Joi.object().keys({
+    limit: Joi.number(),
+    // matches a string with one space and possibly a hyphen
+    name: Joi.string().regex(/[a-zA-Z\- ]/).required(),
+    year: Joi.number().required(),
+  }),
   getPlaylistByIdParams,
   resetBody,
   getAudioFeaturesParams,
