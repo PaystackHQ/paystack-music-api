@@ -118,7 +118,7 @@ const getYearTracksModel = ({ year }) => {
   };
 
   // confirm it's a year we have data for.
-  if (Object.keys(years).indexOf(year) < 0) {
+  if (!years[year]) {
     return null;
   }
 
@@ -126,8 +126,8 @@ const getYearTracksModel = ({ year }) => {
 };
 
 /**
- * This method relies on the existence of the `2020Tracks` collection which is created
- * using a special aggregation found in `scripts/customAggregations/get2020Tracks.js`
+ * This method relies on the existence of the year's tracks collection e.g. `2020Tracks`,
+ * created using an aggregation you can find in `scripts/customAggregations/get2020Tracks.js`
  * Subsequent years can be done by creating the collection, model and adding the mapping
  * to the `getYearTracksModel` function.
  * @param {String} year
@@ -189,8 +189,8 @@ const getTopArtists = async ({ year, limit }) => {
 };
 
 /**
- * This method relies on the existence of the `2020Tracks` collection which is created
- * using a special aggregation found in `scripts/customAggregations/get2020Tracks.js`
+ * This method relies on the existence of the year's tracks collection e.g. `2020Tracks`,
+ * created using an aggregation you can find in `scripts/customAggregations/get2020Tracks.js`
  * Subsequent years can be done by creating the collection, model and adding the mapping
  * to the `getYearTracksModel` function.
  * @param {String} year
