@@ -26,6 +26,8 @@
     "mongoose": "^5.9.25",
     "puppeteer": "^1.20.0",
     "spotify-web-api-node": "^4.0.0",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.1.6",
     "winston": "^3.3.3"
   },
   "repository": {
@@ -63,5 +65,8 @@
       "node --check",
       "eslint"
     ]
+  },
+  "nodemonConfig": {
+    "ignore": ["swagger.json"]
   }
 }

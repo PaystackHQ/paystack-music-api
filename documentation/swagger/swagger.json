@@ -1,0 +1,59 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Hello World",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "description": "Welcome to Paystack Music!",
+                "responses": {
+                    "200": {
+                        "description": "Returns HTML Page showing a welcome message."
+                    }
+                }
+            }
+        },
+        "/authorize": {
+            "get": {
+                "summary": "Authorizes a user.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/callback": {
+            "get": {
+                "summary": "Callback after authentication",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "query"
+                    }
+                ]
+            }
+        },
+        "/playlist/{id}": {
+            "get": {
+                "200": {
+                    "description": "Success - Playlist returned"
+                },
+                "summary": "Get playlist by ID",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the playlist to be fetched"
+                    }
+                ],
+                "responses": null
+            }
+        }
+    },
+    "components": {},
+    "tags": []
+}
