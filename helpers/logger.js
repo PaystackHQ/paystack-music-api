@@ -1,5 +1,6 @@
 const winston = require('winston');
 const config = require('../config');
+const slack = require('./slack');
 
 const infoTransport = new winston.transports.Console({ level: 'info' });
 
@@ -25,6 +26,7 @@ if (config.debugMode) {
 
 module.exports = {
   error(err) {
+    slack.sendMonitorMessage(err);
     return logger.log('error', err.stack || err.message);
   },
   info(msg) {
