@@ -14,6 +14,8 @@ router.get('/callback', validateRequest(validationSchemas.callbackQuery, 'query'
 
 router.post('/trigger', validateRequest(validationSchemas.trigger), controllers.trigger);
 
+router.post('/clear-auth', controllers.clearAuth);
+
 // TODO:: This needs to be changed to /playlists/:id for it to live in the playlists router.
 router.get('/playlist/:id', validateRequest(validationSchemas.getPlaylistByIdParams, 'params'), controllers.getPlaylistByID);
 

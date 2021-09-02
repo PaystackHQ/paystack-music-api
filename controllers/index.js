@@ -78,6 +78,22 @@ module.exports = {
     }
   },
 
+  clearAuth: async (req, res) => {
+    try {
+      const clearedAuth = await spotify.clearAuthentication();
+      return res.status(200).send({
+        message: 'Authentication cleared',
+        data: clearedAuth,
+      });
+    } catch (err) {
+      slack.sendMonitorMessage(JSON.stringify(err));
+      return res.status(500).send({
+        message: 'An error occurred while trying to clear authentication',
+        err,
+      });
+    }
+  },
+
   getPlaylistByID: async (req, res) => {
     try {
       const { id } = req.params;

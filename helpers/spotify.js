@@ -122,6 +122,8 @@ const performAuthentication = async (code = '') => {
   };
 };
 
+const clearAuthentication = async () => Authentication.deleteMany({});
+
 const createPlaylist = (name) => {
   const { userId } = spotifyConfig;
   return spotifyApi.getInstance().createPlaylist(userId, name, { public: true })
@@ -468,6 +470,7 @@ const generatePlaylistName = (playlistMonth) => playlistMonth.format('MMMM YYYY'
 module.exports = {
   createAuthURL,
   performAuthentication,
+  clearAuthentication,
   createPlaylist,
   addTracksToPlaylist,
   getPlaylist,
