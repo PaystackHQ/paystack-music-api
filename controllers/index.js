@@ -71,9 +71,10 @@ module.exports = {
       const { status, message, code } = await serverMethods.trigger({ day, month, year });
       return res.status(code).send({ status, message });
     } catch (error) {
-      const e = { message: error.message, stack: error.stack };
-      slack.sendMonitorMessage(e);
-      return res.send(JSON.stringify(e));
+      const stringError = JSON.stringify(error);
+      // const e = { message: error.message, stack: error.stack, description: error.description };
+      slack.sendMonitorMessage(stringError);
+      return res.status(500).send(stringError);
     }
   },
 
