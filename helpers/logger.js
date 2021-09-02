@@ -30,12 +30,12 @@ module.exports = {
     return logger.log('error', err.stack || err.message);
   },
   info(msg) {
-    slack.sendMonitorMessage(msg);
+    return logger.log('info', msg);
   },
   debug(msg) {
-    slack.sendMonitorMessage(msg);
+    return logger.log('debug', msg);
   },
   warn(msg) {
-    slack.sendMonitorMessage(msg);
+    return logger.log('warn', msg);
   },
 };
