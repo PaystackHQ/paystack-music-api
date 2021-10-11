@@ -76,8 +76,11 @@ const trigger = async ({ day, month, year }) => {
   const dominantColor = await color.getBackgroundColorFromImage(coverImageUrl);
 
   // save the playlist color
-  await Playlist
-    .findOneAndUpdate({ spotifyId: fetchedPlaylist.id }, { hex: dominantColor }, { upsert: true });
+  await Playlist.findOneAndUpdate(
+    { spotifyId: fetchedPlaylist.id },
+    { hex: dominantColor },
+    { upsert: true },
+  );
 
   // This is necessary because Chromium is causing issues and we don't need the cover
   // (for now)

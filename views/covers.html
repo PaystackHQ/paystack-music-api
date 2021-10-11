@@ -98,8 +98,9 @@
 
   <script>
     const url = new URL(window.location.href);
-    const year = url.searchParams.get("year");
-    const month = url.searchParams.get("month");
+    const year = encodeURI(url.searchParams.get("year"));
+    const month = encodeURI(url.searchParams.get("month"));
+    // we're not encoding color because it's been encoded in the calling function
     const color = url.searchParams.get("color");
 
     document.getElementById('canvas').style.backgroundColor = color;

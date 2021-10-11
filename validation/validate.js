@@ -39,4 +39,4 @@ const validate = (schema, bodyParamsOrQuery = 'body') => (req, res, next) => {
   return next();
 };
 
-module.exports = { validate };
+module.exports = { validate, sanitizeInput };
