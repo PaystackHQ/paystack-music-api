@@ -1,5 +1,4 @@
 const moment = require('moment');
-const logger = require('./logger');
 
 /**
  * Returns an array with arrays of the given size.
@@ -54,9 +53,9 @@ function sleep(durationInMs) {
  * @param {string} msg
  * @param {string} cb
  */
-function gracefulShutdown(conn, msg, cb) {
+function gracefulShutdown(conn, msg, infoLogger, cb) {
   conn.close(() => {
-    logger.info(`Mongoose disconnected through ${msg}`);
+    infoLogger(`Mongoose disconnected through ${msg}`);
     cb();
   });
 }
