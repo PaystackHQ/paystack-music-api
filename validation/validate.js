@@ -1,6 +1,14 @@
+const validator = require('validator');
+
 const handleErrorResponse = (error) => ({
   status: false, message: error && error.details[0] && error.details[0].message,
 });
+
+const sanitizeInput = (input) => Object.entries(input).reduce((sanitizedInput, [key, value]) => {
+  // sanitize only string input
+  const sanitizedValue = typeof value === 'string' ? validator.escape(value) : value;
+  return { ...sanitizedInput, [key]: sanitizedValue };
+}, {});
 
 /**
  * @description returns the data to be validated for a request
@@ -22,11 +30,12 @@ const getDataToValidate = (req, bodyParamsOrQuery) => {
 const validate = (schema, bodyParamsOrQuery = 'body') => (req, res, next) => {
   if (!schema) return next();
   const dataToValidate = getDataToValidate(req, bodyParamsOrQuery);
-  const { error } = schema.validate(dataToValidate, { stripUnknown: true });
+  const { error, value } = schema.validate(dataToValidate, { stripUnknown: true });
   if (error) {
     const { status, message } = handleErrorResponse(error);
     return res.status(400).send({ status, message });
   }
+  req[bodyParamsOrQuery] = sanitizeInput(value);
   return next();
 };
 

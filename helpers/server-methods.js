@@ -261,7 +261,7 @@ const getContributorTopArtists = async (year, contributorId, limit) => {
   return model.aggregate(agg);
 };
 
-const getContributorByName = async ({ name }) => Contributor.findOne({ name });
+const getContributorByName = async ({ name }) => Contributor.findOne({ name: { $eq: name } });
 
 module.exports = {
   trigger,
