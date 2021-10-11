@@ -6,7 +6,7 @@ const { gracefulShutdown } = require('../helpers/util');
 mongoose.connect(databaseURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useFindAndModify: true,
+  useFindAndModify: false,
   useCreateIndex: true,
 });
 
