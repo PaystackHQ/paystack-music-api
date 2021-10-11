@@ -61,7 +61,9 @@ module.exports = {
       res.send(html);
     } catch (error) {
       logger.error(error);
-      res.send(JSON.stringify(error));
+      res.send({
+        message: 'Callback failed, it\'s probably an authentication issue',
+      });
     }
   },
 
@@ -72,9 +74,10 @@ module.exports = {
       return res.status(code).send({ status, message });
     } catch (error) {
       const stringError = JSON.stringify(error);
-      // const e = { message: error.message, stack: error.stack, description: error.description };
       slack.sendMonitorMessage(stringError);
-      return res.status(500).send(stringError);
+      return res.status(500).send({
+        message: 'Trigger is broken, check Slack',
+      });
     }
   },
 
