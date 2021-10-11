@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
-const { sanitizeInput } = require('../validation/validate');
 
 module.exports = {
   async generateCoverImage({ color, month, year }) {
