@@ -22,7 +22,7 @@
     "express": "^4.16.4",
     "helmet": "^4.0.0",
     "lowdb": "^1.0.0",
-    "moment": "^2.27.0",
+    "moment": "^2.29.2",
     "mongoose": "^5.9.25",
     "puppeteer": "^1.20.0",
     "spotify-web-api-node": "^4.0.0",
