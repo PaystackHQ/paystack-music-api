@@ -3,22 +3,12 @@ const { db: { uri: databaseURI } } = require('./index');
 const logger = require('../helpers/logger');
 const { gracefulShutdown } = require('../helpers/util');
 
-mongoose.connect(databaseURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
-  useCreateIndex: true,
-});
+const conn = async () => mongoose.connect(databaseURI);
 
-const conn = mongoose.connection;
+conn()
+  .catch((error) => logger.error(error));
 
-conn.on('open', () => {
-  logger.info('Database Connected');
-});
-
-conn.on('error', (err) => {
-  logger.error(`Connection error: ${err.message}`);
-});
+module.exports = conn();
 
 // graceful shutdown for nodemon restarts
 process.once('SIGUSR2', () => {
