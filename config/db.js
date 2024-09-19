@@ -3,12 +3,16 @@ const { db: { uri: databaseURI } } = require('./index');
 const logger = require('../helpers/logger');
 const { gracefulShutdown } = require('../helpers/util');
 
-const conn = async () => mongoose.connect(databaseURI);
+const conn = async function connection() {
+  logger.info('connecting to database');
+  await mongoose.connect(databaseURI);
+};
 
-conn()
-  .catch((error) => logger.error(error));
-
-module.exports = conn();
+try {
+  conn();
+} catch (error) {
+  logger.error(error);
+}
 
 // graceful shutdown for nodemon restarts
 process.once('SIGUSR2', () => {
@@ -23,3 +27,5 @@ process.on('SIGINT', () => {
     process.exit(0);
   });
 });
+
+module.exports = conn;
