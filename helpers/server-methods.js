@@ -54,7 +54,12 @@ const trigger = async ({ day, month, year }) => {
   await spotify.saveTracks(tracks, savedPlaylist);
 
   await Promise.all([
-    spotify.handleTracksUpdateWithAnalytics(tracks),
+    /**
+     * Spotify made changes to their APIs making the APIs being used here inaccessible
+     * @link https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
+     * TODO: Apply for a Quota Extension. Only then can we re-enable this
+     */
+    // spotify.handleTracksUpdateWithAnalytics(tracks),
     spotify.handleTracksUpdateWithPreviewUrls(tracks),
   ]);
 
