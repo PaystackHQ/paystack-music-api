@@ -38,7 +38,7 @@ You'll need to set up apps on both Slack and Spotify for the next steps.
 - Go to the [Spotify developer dashboard](https://developer.spotify.com/dashboard) (sign in when you're prompted to)
 - Create a new app (this will be the app you use for testing the bot locally on your Spotify account)
 - Copy the `client secret` and `client ID` and past them in the corresponding `.env` file variables: `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`
-- Edit the app settings on the [Spotify developer dashboard](https://www.notion.so/paystack/Paystack-Music-API-11632e35bbb54e308d60333bd9835016#2fbf29c427d140ba88666510d853e30e) to add your redirect URI as `localhost:{PORT}/callback` ({PORT} needs to corresponds to the port your app loads on. Default is set to 3000.
+- Edit the app settings on the [Spotify developer dashboard](https://www.notion.so/paystack/Paystack-Music-API-11632e35bbb54e308d60333bd9835016#2fbf29c427d140ba88666510d853e30e) to add your redirect URI as `localhost:{PORT}/callback` ({PORT} needs to corresponds to the port your app loads on. The default is set to 3000.
 - Set the corresponding callback URL on your local `.env` file: `SPOTIFY_REDIRECT_URI`.
 - Set your `APP_TRIGGER_URI` to `localhost:{PORT}/trigger`. ({PORT} needs to corresponds to the port your app loads on. Default is set to 3000
 - When you set up all this, visit `localhost:{PORT}/authorize` and sign in with your Spotify account.
