@@ -20,7 +20,7 @@ const trigger = async ({ day, month, year }) => {
   const playlistMonth = moment(date).subtract(1, 'months');
   const playlistName = spotify.generatePlaylistName(playlistMonth);
 
-  // Search for an existing playlist before continueing the playlist creation process.
+  // Search for an existing playlist before continuing the playlist creation process.
   // A case insensitive search is used for completeness.
   // Please see https://github.com/PaystackHQ/paystack-music-api/pull/15#discussion_r467569438
   // for more context.
