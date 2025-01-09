@@ -53,11 +53,9 @@ function sleep(durationInMs) {
  * @param {string} msg
  * @param {string} cb
  */
-function gracefulShutdown(conn, msg, infoLogger, cb) {
-  conn.close(() => {
-    infoLogger(`Mongoose disconnected through ${msg}`);
-    cb();
-  });
+function gracefulShutdown(conn, msg, infoLogger) {
+  conn.disconnect();
+  infoLogger(`Mongoose disconnected through ${msg}`);
 }
 
 /**
