@@ -77,6 +77,7 @@ module.exports = {
       slack.sendMonitorMessage(stringError);
       return res.status(500).send({
         message: 'Trigger is broken, check Slack',
+        error,
       });
     }
   },
