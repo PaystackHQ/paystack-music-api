@@ -35,4 +35,22 @@ module.exports = {
       return res.status(500).send({ status: false, message: 'An error occurred' });
     }
   },
+
+  deletePlaylist: async (req, res) => {
+    try {
+      const playlist = await spotify.deletePlaylist(req.params.id);
+      if (!playlist) {
+        return res.status(404).send({
+          status: false,
+          message: 'Playlist not found',
+        });
+      }
+      return res.status(200).send({
+        status: true,
+        message: `${playlist.name} playlist deleted`,
+      });
+    } catch (err) {
+      return res.status(500).send({ status: false, message: 'An error occurred' });
+    }
+  },
 };
