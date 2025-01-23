@@ -460,6 +460,14 @@ const findAllPlaylists = async () => Playlist.find({}, {
   name: 1, description: 1, playlist_url: 1, playlist_uri: 1, hex: 1,
 }, {}).sort({ date_added: -1 });
 
+const deletePlaylist = async (id) => {
+  const playlist = await Playlist.findById(id).select({ _id: 1, name: 1 });
+  console.log('p', playlist);
+  if (!playlist) return null;
+  const deletedPlaylist = await Playlist.deleteOne({ _id: id });
+  return { ...deletedPlaylist, name: playlist.name };
+};
+
 /**
  * @description generate playlist name from formatted month
  * @param {Number} playlistMonth
@@ -487,4 +495,5 @@ module.exports = {
   findPlaylist,
   findAllPlaylists,
   generatePlaylistName,
+  deletePlaylist,
 };
