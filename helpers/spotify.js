@@ -462,7 +462,6 @@ const findAllPlaylists = async () => Playlist.find({}, {
 
 const deletePlaylist = async (id) => {
   const playlist = await Playlist.findById(id).select({ _id: 1, name: 1 });
-  console.log('p', playlist);
   if (!playlist) return null;
   const deletedPlaylist = await Playlist.deleteOne({ _id: id });
   return { ...deletedPlaylist, name: playlist.name };
